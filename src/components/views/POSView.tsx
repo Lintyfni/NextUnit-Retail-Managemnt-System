@@ -256,10 +256,18 @@ export const POSView: React.FC = () => {
   }, [cart]);
 
   let promoDiscount = 0;
+  let activePromoRule: (typeof promotions)[0] | undefined = undefined;
   if (appliedPromo) {
     const promo = promotions.find((p) => p.code.toUpperCase() === appliedPromo.toUpperCase() && p.active);
     if (promo) {
-      promoDiscount = promo.type === "PERCENTAGE" ? (subtotal * promo.discountValue) / 100 : promo.discountValue;
+      activePromoRule = promo;
+      if (promo.type === "PERCENTAGE" || promo.type === "TIER_DISCOUNT") {
+        promoDiscount = (subtotal * promo.discountValue) / 100;
+      } else {
+        // FIXED_AMOUNT, HAPPY_HOUR, or direct cash discount
+        promoDiscount = promo.discountValue;
+      }
+      promoDiscount = Math.min(subtotal, promoDiscount);
     }
   }
 
@@ -292,10 +300,22 @@ export const POSView: React.FC = () => {
       (p) => p.code.toUpperCase() === promoCodeInput.trim().toUpperCase() && p.active
     );
     if (found) {
+      if (found.minSpend && subtotal < found.minSpend) {
+        alert(
+          language === "my"
+            ? `ဤ Coupon (${found.code}) ကို အသုံးပြုရန် အနည်းဆုံး ${formatCurrency(found.minSpend, currency, language)} ဖိုး ဝယ်ယူရပါမည်။ (လက်ရှိ: ${formatCurrency(subtotal, currency, language)})`
+            : `Minimum spend of ${formatCurrency(found.minSpend, currency, language)} is required for coupon ${found.code}. (Current: ${formatCurrency(subtotal, currency, language)})`
+        );
+        return;
+      }
       setAppliedPromo(found.code);
       setPromoCodeInput("");
     } else {
-      alert("Invalid or expired coupon promo code.");
+      alert(
+        language === "my"
+          ? "မှားယွင်းနေသော သို့မဟုတ် သက်တမ်းကုန်ဆုံးသွားသော Coupon Code ဖြစ်ပါသည်။"
+          : "Invalid or expired coupon promo code."
+      );
     }
   };
 
@@ -744,22 +764,53 @@ export const POSView: React.FC = () => {
 
           {/* Cart Bottom: Coupon, Financial Totals, Complete Sale Button */}
           <div className="space-y-3 border-t border-slate-800 pt-3">
-            {/* Promo Code Input */}
-            <div className="flex items-center space-x-1.5">
-              <input
-                type="text"
-                placeholder="Coupon Code (e.g. WEEKEND10)"
-                value={promoCodeInput}
-                onChange={(e) => setPromoCodeInput(e.target.value)}
-                className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-100 uppercase focus:outline-none focus:border-indigo-500"
-              />
-              <button
-                onClick={handleApplyPromo}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 font-semibold rounded-xl text-xs border border-slate-700"
-              >
-                Apply
-              </button>
-            </div>
+            {/* Promo Code Input & Active Coupon Display */}
+            {appliedPromo ? (
+              <div className="flex items-center justify-between px-3 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 animate-fade-in">
+                <div className="flex items-center space-x-2">
+                  <Tag className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <div className="min-w-0">
+                    <div className="flex items-center space-x-1.5">
+                      <span className="font-mono font-bold">{appliedPromo}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold">
+                        {activePromoRule?.type === "FIXED_AMOUNT" || activePromoRule?.type === "HAPPY_HOUR"
+                          ? `-${formatCurrency(activePromoRule?.discountValue || promoDiscount, currency, language)} တိုက်ရိုက်လျှော့`
+                          : `-${activePromoRule?.discountValue || 10}% OFF`}
+                      </span>
+                    </div>
+                    {activePromoRule?.title && (
+                      <p className="text-[10px] text-slate-400 truncate">{activePromoRule.title}</p>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setAppliedPromo(null)}
+                  className="text-slate-400 hover:text-rose-400 p-1 rounded-lg hover:bg-slate-800 transition-colors shrink-0"
+                  title="Remove Coupon"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-1.5">
+                <input
+                  type="text"
+                  placeholder={language === "my" ? "Coupon Code (ဥပမာ CASH50K, WEEKEND10)" : "Coupon Code (e.g. CASH50K, WEEKEND10)"}
+                  value={promoCodeInput}
+                  onChange={(e) => setPromoCodeInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleApplyPromo();
+                  }}
+                  className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-100 uppercase focus:outline-none focus:border-indigo-500 font-mono"
+                />
+                <button
+                  onClick={handleApplyPromo}
+                  className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs shadow-sm transition-colors"
+                >
+                  {language === "my" ? "အသုံးပြုမည်" : "Apply"}
+                </button>
+              </div>
+            )}
 
             {/* Financial Summary */}
             <div className="space-y-1.5 text-xs text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800">

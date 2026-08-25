@@ -137,6 +137,9 @@ interface AppContextType {
   createCustomer: (c: Omit<Customer, "id" | "loyaltyPoints" | "totalSpend" | "joinedDate">) => void;
   createSupplier: (s: Omit<Supplier, "id">) => void;
   createPromotion: (promo: Omit<PromotionRule, "id" | "usageCount">) => void;
+  updatePromotion: (promo: PromotionRule) => void;
+  deletePromotion: (id: string) => void;
+  togglePromotionActive: (id: string) => void;
   createDynamicPricingRule: (rule: Omit<DynamicPricingRule, "id">) => void;
   updateDynamicPricingRule: (rule: DynamicPricingRule) => void;
   deleteDynamicPricingRule: (id: string) => void;
@@ -286,6 +289,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem("omnichain_auditlogs", JSON.stringify(auditLogs));
   }, [auditLogs]);
+
+  useEffect(() => {
+    localStorage.setItem("omnichain_promotions", JSON.stringify(promotions));
+  }, [promotions]);
 
   useEffect(() => {
     localStorage.setItem("omnichain_dynpricing", JSON.stringify(dynamicPricing));
@@ -768,7 +775,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (discountCode) {
       const promo = promotions.find((p) => p.code.toUpperCase() === discountCode.toUpperCase() && p.active);
       if (promo) {
-        promoDiscount = promo.type === "PERCENTAGE" ? (subtotal * promo.discountValue) / 100 : promo.discountValue;
+        if (promo.type === "PERCENTAGE" || promo.type === "TIER_DISCOUNT") {
+          promoDiscount = (subtotal * promo.discountValue) / 100;
+        } else {
+          // FIXED_AMOUNT, HAPPY_HOUR, or direct cash value
+          promoDiscount = promo.discountValue;
+        }
+        promoDiscount = Math.min(subtotal, promoDiscount);
       }
     }
 
@@ -1114,6 +1127,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       usageCount: 0,
     };
     setPromotions((prev) => [newPromo, ...prev]);
+    addAuditLog(
+      "CREATE_PROMOTION",
+      "CRM",
+      `Created coupon "${newPromo.code}" (${newPromo.type === "FIXED_AMOUNT" ? `${newPromo.discountValue.toLocaleString()} MMK Cash Discount` : `${newPromo.discountValue}% Off`})`
+    );
+  };
+
+  const updatePromotion = (updatedPromo: PromotionRule) => {
+    setPromotions((prev) =>
+      prev.map((p) => (p.id === updatedPromo.id ? updatedPromo : p))
+    );
+    addAuditLog("UPDATE_PROMOTION", "CRM", `Updated coupon "${updatedPromo.code}"`);
+  };
+
+  const deletePromotion = (id: string) => {
+    const target = promotions.find((p) => p.id === id);
+    setPromotions((prev) => prev.filter((p) => p.id !== id));
+    addAuditLog("DELETE_PROMOTION", "CRM", `Deleted coupon "${target ? target.code : id}"`, "MEDIUM");
+  };
+
+  const togglePromotionActive = (id: string) => {
+    setPromotions((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, active: !p.active } : p))
+    );
   };
 
   const createDynamicPricingRule = (ruleData: Omit<DynamicPricingRule, "id">) => {
@@ -1281,6 +1318,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createCustomer,
       createSupplier,
       createPromotion,
+      updatePromotion,
+      deletePromotion,
+      togglePromotionActive,
       createDynamicPricingRule,
       updateDynamicPricingRule,
       deleteDynamicPricingRule,
