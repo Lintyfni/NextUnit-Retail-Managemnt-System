@@ -31,6 +31,10 @@ import {
   Boxes,
   Zap,
   CheckCircle2,
+  Truck,
+  Building2,
+  ArrowRight,
+  Award,
 } from "lucide-react";
 
 /**
@@ -120,6 +124,8 @@ export const POSView: React.FC = () => {
     language,
     promotions,
     getDynamicPrice,
+    setActiveView,
+    deliveryTypes,
   } = useApp();
 
   const t = DICTIONARY[language];
@@ -135,6 +141,15 @@ export const POSView: React.FC = () => {
   const [showReturnsModal, setShowReturnsModal] = useState(false);
   const [showParkedModal, setShowParkedModal] = useState(false);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
+
+  // Fleet Delivery & Loyalty Point Redemption State in POS Checkout
+  const [isDeliveryRequested, setIsDeliveryRequested] = useState<boolean>(false);
+  const [deliveryTypeId, setDeliveryTypeId] = useState<string>("DT-02");
+  const [deliveryAddress, setDeliveryAddress] = useState<string>("");
+  const [deliveryRecipientName, setDeliveryRecipientName] = useState<string>("");
+  const [deliveryRecipientPhone, setDeliveryRecipientPhone] = useState<string>("");
+  const [deliveryNotes, setDeliveryNotes] = useState<string>("");
+  const [redeemPointsQty, setRedeemPointsQty] = useState<number>(0);
 
   // Split payment state
   const [cashAmount, setCashAmount] = useState<number>(0);
@@ -274,12 +289,14 @@ export const POSView: React.FC = () => {
   // VIP Customer Perk
   let customerPerkDiscount = 0;
   if (activeCustomer?.membershipTier === "PLATINUM") {
-    customerPerkDiscount = subtotal * 0.08; // 8% VIP discount
+    customerPerkDiscount = Math.round(subtotal * 0.08); // 8% VIP discount
   } else if (activeCustomer?.membershipTier === "GOLD") {
-    customerPerkDiscount = subtotal * 0.05; // 5% VIP discount
+    customerPerkDiscount = Math.round(subtotal * 0.05); // 5% VIP discount
   }
 
-  const effectiveDiscount = promoDiscount + customerPerkDiscount;
+  // Loyalty Point Redemption: 1 Point = 100 MMK
+  const pointsDiscount = redeemPointsQty > 0 ? redeemPointsQty * 100 : 0;
+  const effectiveDiscount = promoDiscount + customerPerkDiscount + pointsDiscount;
   const discountedSubtotal = Math.max(0, subtotal - effectiveDiscount);
   const taxAmount = Math.round(discountedSubtotal * 0.05); // 5% IRD Tax
   const grandTotal = discountedSubtotal + taxAmount;
@@ -325,6 +342,16 @@ export const POSView: React.FC = () => {
     setKbzPayAmount(0);
     setWavePayAmount(0);
     setCardAmount(0);
+    setRedeemPointsQty(0);
+    if (activeCustomer) {
+      setDeliveryRecipientName(activeCustomer.name);
+      setDeliveryRecipientPhone(activeCustomer.phone);
+      setDeliveryAddress(`${activeCustomer.city || "Yangon"}, Myanmar`);
+    } else {
+      setDeliveryRecipientName("");
+      setDeliveryRecipientPhone("");
+      setDeliveryAddress("");
+    }
     setShowPaymentModal(true);
   };
 
@@ -340,9 +367,28 @@ export const POSView: React.FC = () => {
     if (wavePayAmount > 0) payments.push({ method: "WAVEPAY", amount: wavePayAmount, referenceNumber: wavePayRef || `WV-${Date.now().toString().slice(-6)}` });
     if (cardAmount > 0) payments.push({ method: "CREDIT_CARD", amount: cardAmount });
 
-    completeSale(payments, appliedPromo || undefined);
+    const selectedDeliveryType = deliveryTypes?.find((d) => d.id === deliveryTypeId);
+
+    completeSale(payments, appliedPromo || undefined, {
+      customDiscountAmount: effectiveDiscount,
+      redeemedPoints: redeemPointsQty,
+      deliveryInfo: isDeliveryRequested
+        ? {
+            enabled: true,
+            deliveryTypeId,
+            deliveryTypeName: selectedDeliveryType ? `${selectedDeliveryType.name} (${selectedDeliveryType.vehicleType})` : "Express Delivery",
+            address: deliveryAddress || "Yangon Dispatch Delivery Address",
+            recipientName: deliveryRecipientName || activeCustomer?.name || "Walk-in VIP",
+            recipientPhone: deliveryRecipientPhone || activeCustomer?.phone || "09790123456",
+            notes: deliveryNotes,
+          }
+        : undefined,
+    });
+
     setShowPaymentModal(false);
     setAppliedPromo(null);
+    setRedeemPointsQty(0);
+    setIsDeliveryRequested(false);
   };
 
   // Return Processing logic
@@ -432,6 +478,50 @@ export const POSView: React.FC = () => {
           >
             <RotateCcw className="w-4 h-4 text-rose-500" />
             <span>{language === "my" ? "ပစ္စည်းပြန်သွင်း/ငွေပြန်အမ်း" : "Returns & Refund"}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Linked Omnichannel Operations Flow Strip */}
+      <div className="bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="flex items-center space-x-2 text-slate-600">
+          <span className="font-semibold text-slate-700 flex items-center space-x-1">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{language === "my" ? "ချိတ်ဆက်ထားသော စနစ်များ:" : "Unified Flow Links:"}</span>
+          </span>
+        </div>
+        <div className="flex items-center flex-wrap gap-1.5">
+          <button
+            id="link-dynamic-pricing-btn"
+            onClick={() => setActiveView("dynamic-pricing")}
+            className="inline-flex items-center space-x-1 px-2.5 py-1 bg-white hover:bg-purple-50 text-purple-700 hover:text-purple-800 border border-purple-200 rounded-lg font-medium transition-all shadow-2xs"
+          >
+            <Tag className="w-3.5 h-3.5" />
+            <span>Dynamic Pricing ({promotions.filter(p => p.active).length})</span>
+          </button>
+          <button
+            id="link-crm-loyalty-btn"
+            onClick={() => setActiveView("crm")}
+            className="inline-flex items-center space-x-1 px-2.5 py-1 bg-white hover:bg-blue-50 text-blue-700 hover:text-blue-800 border border-blue-200 rounded-lg font-medium transition-all shadow-2xs"
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>CRM & Loyalty ({customers.length})</span>
+          </button>
+          <button
+            id="link-inventory-transfers-btn"
+            onClick={() => setActiveView("inventory")}
+            className="inline-flex items-center space-x-1 px-2.5 py-1 bg-white hover:bg-amber-50 text-amber-700 hover:text-amber-800 border border-amber-200 rounded-lg font-medium transition-all shadow-2xs"
+          >
+            <Boxes className="w-3.5 h-3.5" />
+            <span>Inventory & Transfers</span>
+          </button>
+          <button
+            id="link-warehouse-fleet-btn"
+            onClick={() => setActiveView("logistics")}
+            className="inline-flex items-center space-x-1 px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-700 hover:text-emerald-800 border border-emerald-200 rounded-lg font-medium transition-all shadow-2xs"
+          >
+            <Truck className="w-3.5 h-3.5" />
+            <span>Warehouse & Fleet</span>
           </button>
         </div>
       </div>
@@ -1445,15 +1535,157 @@ export const POSView: React.FC = () => {
       {/* Split Payment Modal */}
       {showPaymentModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 text-slate-800 shadow-2xl space-y-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 text-slate-800 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-bold text-sm text-slate-900">Multi-Method Split Payment</h3>
-                <p className="text-[11px] text-slate-500">Total Payable: <span className="font-bold text-emerald-700">{formatCurrency(grandTotal, currency, language)}</span></p>
+                <p className="text-[11px] text-slate-500">
+                  Total Payable: <span className="font-bold text-emerald-700">{formatCurrency(grandTotal, currency, language)}</span>
+                </p>
               </div>
               <button onClick={() => setShowPaymentModal(false)}>
                 <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
               </button>
+            </div>
+
+            {/* CRM Customer & Loyalty Perks Card */}
+            {activeCustomer && (
+              <div className="bg-blue-50/60 border border-blue-200/80 p-3 rounded-xl space-y-2 text-xs">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-1.5 font-bold text-blue-950">
+                    <User className="w-3.5 h-3.5 text-blue-600" />
+                    <span>{activeCustomer.name}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-semibold">
+                      {activeCustomer.membershipTier}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-blue-700 font-semibold flex items-center space-x-1">
+                    <Coins className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Available: {activeCustomer.loyaltyPoints} Pts</span>
+                  </span>
+                </div>
+
+                {/* VIP Discount Perk indicator */}
+                {customerPerkDiscount > 0 && (
+                  <div className="flex justify-between text-blue-800 text-[11px]">
+                    <span>VIP Tier Discount:</span>
+                    <span className="font-bold text-emerald-700">-{formatCurrency(customerPerkDiscount, currency, language)}</span>
+                  </div>
+                )}
+
+                {/* Point Redemption Selector */}
+                {activeCustomer.loyaltyPoints > 0 && (
+                  <div className="pt-1.5 border-t border-blue-200/60 space-y-1.5">
+                    <div className="flex justify-between items-center text-[11px] text-blue-900 font-medium">
+                      <span>Redeem Loyalty Points (1 Pt = 100 Ks):</span>
+                      <span className="font-bold text-emerald-700">-{formatCurrency(pointsDiscount, currency, language)}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="range"
+                        min="0"
+                        max={Math.min(activeCustomer.loyaltyPoints, Math.floor(subtotal / 100))}
+                        step="10"
+                        value={redeemPointsQty}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setRedeemPointsQty(val);
+                          // Auto update cash amount
+                          const newPtsDiscount = val * 100;
+                          const newTotal = Math.max(0, subtotal - promoDiscount - customerPerkDiscount - newPtsDiscount);
+                          const newTax = Math.round(newTotal * 0.05);
+                          setCashAmount(newTotal + newTax);
+                        }}
+                        className="flex-1 accent-emerald-600 cursor-pointer"
+                      />
+                      <span className="w-16 text-right font-mono font-bold text-slate-800 text-xs">
+                        {redeemPointsQty} pts
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Fleet Delivery Dispatch Toggle & Fields */}
+            <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2 text-xs">
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className="flex items-center space-x-2 font-semibold text-slate-800">
+                  <Truck className="w-4 h-4 text-emerald-600" />
+                  <span>{language === "my" ? "ယာဉ်တန်းဖြင့် အိမ်အရောက်ပို့မည် (Fleet Delivery)" : "Dispatch via Logistics Fleet"}</span>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={isDeliveryRequested}
+                  onChange={(e) => setIsDeliveryRequested(e.target.checked)}
+                  className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 accent-emerald-600"
+                />
+              </label>
+
+              {isDeliveryRequested && (
+                <div className="pt-2 border-t border-slate-200 space-y-2 text-xs animate-fade-in">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-600">Delivery Type</label>
+                      <select
+                        value={deliveryTypeId}
+                        onChange={(e) => setDeliveryTypeId(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"
+                      >
+                        {deliveryTypes.map((dt) => (
+                          <option key={dt.id} value={dt.id}>
+                            {dt.name} ({dt.vehicleType})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-600">Recipient Phone</label>
+                      <input
+                        type="text"
+                        placeholder="09..."
+                        value={deliveryRecipientPhone}
+                        onChange={(e) => setDeliveryRecipientPhone(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"
+                      >
+                      </input>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-600">Recipient Name</label>
+                    <input
+                      type="text"
+                      placeholder="Customer Name"
+                      value={deliveryRecipientName}
+                      onChange={(e) => setDeliveryRecipientName(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-600">Delivery Address</label>
+                    <input
+                      type="text"
+                      placeholder="Street, Township, City"
+                      value={deliveryAddress}
+                      onChange={(e) => setDeliveryAddress(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-600">Special Handling / Driver Notes</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Fragile electronics, Call before delivery"
+                      value={deliveryNotes}
+                      onChange={(e) => setDeliveryNotes(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-3 text-xs">

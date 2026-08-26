@@ -16,6 +16,8 @@ import {
   StockTransfer,
   StockAdjustment,
   DeliveryFleet,
+  DeliveryType,
+  WarehouseBin,
   WarrantyClaim,
   AccountLedger,
   AccountingVoucher,
@@ -36,6 +38,8 @@ import {
   INITIAL_STOCK_TRANSFERS,
   INITIAL_STOCK_ADJUSTMENTS,
   INITIAL_DELIVERIES,
+  INITIAL_DELIVERY_TYPES,
+  INITIAL_WAREHOUSE_BINS,
   INITIAL_WARRANTY_CLAIMS,
   INITIAL_ACCOUNTS,
   INITIAL_VOUCHERS,
@@ -79,6 +83,8 @@ interface AppContextType {
   stockTransfers: StockTransfer[];
   stockAdjustments: StockAdjustment[];
   deliveries: DeliveryFleet[];
+  deliveryTypes: DeliveryType[];
+  warehouseBins: WarehouseBin[];
   warrantyClaims: WarrantyClaim[];
   accounts: AccountLedger[];
   chartOfAccounts: AccountLedger[];
@@ -111,7 +117,23 @@ interface AppContextType {
   parkCurrentCart: (name?: string) => void;
   restoreParkedCart: (id: string) => void;
   deleteParkedTicket: (id: string) => void;
-  completeSale: (payments: SplitPayment[], discountCode?: string) => SaleOrder | null;
+  completeSale: (
+    payments: SplitPayment[],
+    discountCode?: string,
+    extraOptions?: {
+      customDiscountAmount?: number;
+      redeemedPoints?: number;
+      deliveryInfo?: {
+        enabled: boolean;
+        deliveryTypeId?: string;
+        deliveryTypeName?: string;
+        address: string;
+        recipientName: string;
+        recipientPhone: string;
+        notes?: string;
+      };
+    }
+  ) => SaleOrder | null;
   processReturn: (orderId: string, itemsToReturn: { productId: string; quantity: number }[], reason: string) => void;
 
   // Active Receipt Modal
@@ -124,6 +146,15 @@ interface AppContextType {
 
   // Actions
   addAuditLog: (action: string, category: AuditLog["category"], details: string, riskScore?: AuditLog["riskScore"]) => void;
+  createWarehouse: (warehouse: Omit<Branch, "id" | "currentSales" | "cashFloat">) => void;
+  createDeliveryType: (type: Omit<DeliveryType, "id">) => void;
+  updateDeliveryType: (type: DeliveryType) => void;
+  deleteDeliveryType: (id: string) => void;
+  createWarehouseBin: (bin: Omit<WarehouseBin, "id" | "occupancyPercentage">) => void;
+  updateWarehouseBin: (bin: WarehouseBin) => void;
+  deleteWarehouseBin: (id: string) => void;
+  createDelivery: (delivery: Omit<DeliveryFleet, "id" | "trackingNumber">) => void;
+  updateDeliveryStatus: (id: string, status: DeliveryFleet["status"]) => void;
   createPurchaseOrder: (po: Omit<PurchaseOrder, "id" | "poNumber" | "createdAt" | "status">) => void;
   createGRN: (grn: Omit<GoodsReceivedNote, "id" | "grnNumber">) => void;
   createStockTransfer: (transfer: Omit<StockTransfer, "id" | "transferNumber">) => void;
@@ -227,6 +258,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_DELIVERIES;
   });
 
+  const [deliveryTypes, setDeliveryTypes] = useState<DeliveryType[]>(() => {
+    const saved = localStorage.getItem("omnichain_delivery_types");
+    return saved ? JSON.parse(saved) : INITIAL_DELIVERY_TYPES;
+  });
+
+  const [warehouseBins, setWarehouseBins] = useState<WarehouseBin[]>(() => {
+    const saved = localStorage.getItem("omnichain_warehouse_bins");
+    return saved ? JSON.parse(saved) : INITIAL_WAREHOUSE_BINS;
+  });
+
   const [warrantyClaims, setWarrantyClaims] = useState<WarrantyClaim[]>(() => {
     const saved = localStorage.getItem("omnichain_warranty");
     return saved ? JSON.parse(saved) : INITIAL_WARRANTY_CLAIMS;
@@ -289,6 +330,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem("omnichain_auditlogs", JSON.stringify(auditLogs));
   }, [auditLogs]);
+
+  useEffect(() => {
+    localStorage.setItem("omnichain_deliveries", JSON.stringify(deliveries));
+  }, [deliveries]);
+
+  useEffect(() => {
+    localStorage.setItem("omnichain_delivery_types", JSON.stringify(deliveryTypes));
+  }, [deliveryTypes]);
+
+  useEffect(() => {
+    localStorage.setItem("omnichain_warehouse_bins", JSON.stringify(warehouseBins));
+  }, [warehouseBins]);
 
   useEffect(() => {
     localStorage.setItem("omnichain_promotions", JSON.stringify(promotions));
@@ -761,7 +814,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Complete Checkout Sale
-  const completeSale = (payments: SplitPayment[], discountCode?: string): SaleOrder | null => {
+  const completeSale = (
+    payments: SplitPayment[],
+    discountCode?: string,
+    extraOptions?: {
+      customDiscountAmount?: number;
+      redeemedPoints?: number;
+      deliveryInfo?: {
+        enabled: boolean;
+        deliveryTypeId?: string;
+        deliveryTypeName?: string;
+        address: string;
+        recipientName: string;
+        recipientPhone: string;
+        notes?: string;
+      };
+    }
+  ): SaleOrder | null => {
     if (cart.length === 0) return null;
 
     const currentBranch = branches.find((b) => b.id === (activeBranchId === "ALL" ? "BR-YGN-01" : activeBranchId)) || branches[0];
@@ -785,7 +854,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    const discountedSubtotal = Math.max(0, subtotal - promoDiscount);
+    // Customer VIP Perk Discount
+    let customerPerkDiscount = 0;
+    if (activeCustomer?.membershipTier === "PLATINUM") {
+      customerPerkDiscount = Math.round(subtotal * 0.08);
+    } else if (activeCustomer?.membershipTier === "GOLD") {
+      customerPerkDiscount = Math.round(subtotal * 0.05);
+    }
+
+    const pointsDiscount = extraOptions?.redeemedPoints ? extraOptions.redeemedPoints * 100 : 0; // 1 pt = 100 Ks
+    const calculatedDiscount = promoDiscount + customerPerkDiscount + pointsDiscount;
+    const finalDiscountAmount = Math.min(
+      subtotal,
+      extraOptions?.customDiscountAmount !== undefined
+        ? extraOptions.customDiscountAmount
+        : calculatedDiscount
+    );
+
+    const discountedSubtotal = Math.max(0, subtotal - finalDiscountAmount);
     const taxAmount = Math.round(discountedSubtotal * 0.05); // 5% Commercial Tax
     const grandTotal = discountedSubtotal + taxAmount;
 
@@ -799,9 +885,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     });
 
+    const orderNumber = `INV-${Date.now().toString().slice(-6)}`;
+    let deliveryTrackingNumber: string | undefined = undefined;
+
+    // If Fleet Delivery is requested for this sale order
+    if (extraOptions?.deliveryInfo?.enabled) {
+      deliveryTrackingNumber = `TRK-POS-${Date.now().toString().slice(-6)}`;
+      const newDelivery: DeliveryFleet = {
+        id: `DEL-${Date.now().toString().slice(-4)}`,
+        trackingNumber: deliveryTrackingNumber,
+        orderId: orderNumber,
+        deliveryTypeId: extraOptions.deliveryInfo.deliveryTypeId || "DT-02",
+        deliveryTypeName: extraOptions.deliveryInfo.deliveryTypeName || "Express Motorbike (Yangon Same-day)",
+        warehouseId: currentBranch.id,
+        warehouseName: currentBranch.name,
+        recipientName: extraOptions.deliveryInfo.recipientName || activeCustomer?.name || "Walk-in VIP",
+        recipientPhone: extraOptions.deliveryInfo.recipientPhone || activeCustomer?.phone || "09790123456",
+        deliveryAddress: extraOptions.deliveryInfo.address || "Yangon Dispatch Delivery Address",
+        driverName: "Ko Aung Kyaw (Fleet Courier)",
+        driverPhone: "09-798881234",
+        vehicle: "YGN 5B-8832 (Motorbike)",
+        status: "ASSIGNED",
+        estimatedArrival: new Date(Date.now() + 3 * 3600000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+      setDeliveries((prev) => [newDelivery, ...prev]);
+    }
+
     const newOrder: SaleOrder = {
       id: `ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(100 + Math.random() * 900)}`,
-      orderNumber: `INV-${Date.now().toString().slice(-6)}`,
+      orderNumber,
       branchId: currentBranch.id,
       branchName: currentBranch.name,
       registerId: "REG-YGN-01",
@@ -812,7 +924,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       customerPhone: activeCustomer?.phone,
       items: [...cart],
       subtotal,
-      discountAmount: promoDiscount,
+      discountAmount: finalDiscountAmount,
+      promoCode: discountCode,
       taxAmount,
       grandTotal,
       payments,
@@ -820,6 +933,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: "COMPLETED",
       createdAt: new Date().toISOString(),
       imeiSold: imeiSoldMap,
+      deliveryTrackingNumber,
+      deliveryOption: extraOptions?.deliveryInfo,
     };
 
     // Deduct stock
@@ -844,9 +959,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         prev.map((cust) => {
           if (cust.id === activeCustomer.id) {
             const pointsEarned = Math.floor(grandTotal / 10000); // 1 pt per 10,000 Ks
+            const pointsSpent = extraOptions?.redeemedPoints || 0;
             return {
               ...cust,
-              loyaltyPoints: cust.loyaltyPoints + pointsEarned,
+              loyaltyPoints: Math.max(0, cust.loyaltyPoints - pointsSpent) + pointsEarned,
               totalSpend: cust.totalSpend + grandTotal,
               lastVisit: new Date().toISOString().slice(0, 10),
             };
@@ -868,7 +984,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog(
       "COMPLETED_POS_SALE",
       "POS",
-      `Completed sale ${newOrder.orderNumber} for MMK ${grandTotal.toLocaleString()} by ${currentUser.name} (${currentBranch.name}).`
+      `Completed sale ${newOrder.orderNumber} for MMK ${grandTotal.toLocaleString()} by ${currentUser.name} (${currentBranch.name})${deliveryTrackingNumber ? ` [Fleet Delivery: ${deliveryTrackingNumber}]` : ""}.`
     );
 
     return newOrder;
@@ -1405,6 +1521,128 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog("MFA_POLICY_TOGGLED", "SECURITY", `MFA security setting set to ${enabled ? "ENABLED" : "DISABLED"} for ${currentUser.name}`);
   };
 
+  // Warehouse Creation (YGN / MDY / Regional Warehouses)
+  const createWarehouse = (whData: Omit<Branch, "id" | "currentSales" | "cashFloat">) => {
+    const cityCode = (whData.city || "YGN").toUpperCase().slice(0, 3);
+    const newId = `BR-WH-${cityCode}-${Date.now().toString().slice(-4)}`;
+    const newWarehouse: Branch = {
+      ...whData,
+      id: newId,
+      currentSales: 0,
+      cashFloat: 500000,
+    };
+
+    setBranches((prev) => [...prev, newWarehouse]);
+
+    // Initialize stock of 0 for this new warehouse across all existing products
+    setProducts((prev) =>
+      prev.map((p) => ({
+        ...p,
+        branchStock: {
+          ...p.branchStock,
+          [newId]: p.branchStock[newId] ?? 0,
+        },
+      }))
+    );
+
+    addAuditLog(
+      "CREATED_WAREHOUSE",
+      "INVENTORY",
+      `Constructed new Warehouse facility: [${newWarehouse.code}] ${newWarehouse.name} in ${newWarehouse.city}`
+    );
+  };
+
+  // Delivery Types CRUD
+  const createDeliveryType = (typeData: Omit<DeliveryType, "id">) => {
+    const newId = `DT-${Date.now().toString().slice(-6)}`;
+    const newType: DeliveryType = {
+      ...typeData,
+      id: newId,
+    };
+    setDeliveryTypes((prev) => [newType, ...prev]);
+    addAuditLog(
+      "CREATED_DELIVERY_TYPE",
+      "INVENTORY",
+      `Configured new Fleet Delivery Type: [${newType.code}] ${newType.name} (${newType.estimatedSLA})`
+    );
+  };
+
+  const updateDeliveryType = (updated: DeliveryType) => {
+    setDeliveryTypes((prev) => prev.map((dt) => (dt.id === updated.id ? updated : dt)));
+    addAuditLog("UPDATED_DELIVERY_TYPE", "INVENTORY", `Updated Delivery Type ${updated.name}`);
+  };
+
+  const deleteDeliveryType = (id: string) => {
+    const target = deliveryTypes.find((dt) => dt.id === id);
+    setDeliveryTypes((prev) => prev.filter((dt) => dt.id !== id));
+    addAuditLog(
+      "DELETED_DELIVERY_TYPE",
+      "INVENTORY",
+      `Removed Delivery Type: ${target ? target.name : id}`,
+      "MEDIUM"
+    );
+  };
+
+  // Warehouse Bins & Layout CRUD
+  const createWarehouseBin = (binData: Omit<WarehouseBin, "id" | "occupancyPercentage">) => {
+    const maxCap = Math.max(1, Number(binData.maxCapacityUnits || 100));
+    const currUnits = Number(binData.currentUnits || 0);
+    const occupancyPercentage = Math.min(100, Math.round((currUnits / maxCap) * 100));
+    const newId = `BIN-${Date.now().toString().slice(-6)}`;
+    const newBin: WarehouseBin = {
+      ...binData,
+      id: newId,
+      maxCapacityUnits: maxCap,
+      currentUnits: currUnits,
+      occupancyPercentage,
+      barcode: binData.barcode || `BIN-${binData.binCode.replace(/\s+/g, "-").toUpperCase()}`,
+    };
+    setWarehouseBins((prev) => [newBin, ...prev]);
+    addAuditLog(
+      "CREATED_WAREHOUSE_BIN",
+      "INVENTORY",
+      `Allocated new Bin & Layout: ${newBin.binCode} (${newBin.zone}) for ${newBin.warehouseName}`
+    );
+  };
+
+  const updateWarehouseBin = (updated: WarehouseBin) => {
+    const maxCap = Math.max(1, Number(updated.maxCapacityUnits || 1));
+    const currUnits = Number(updated.currentUnits || 0);
+    const occupancyPercentage = Math.min(100, Math.round((currUnits / maxCap) * 100));
+    const refreshed = { ...updated, maxCapacityUnits: maxCap, currentUnits: currUnits, occupancyPercentage };
+    setWarehouseBins((prev) => prev.map((b) => (b.id === updated.id ? refreshed : b)));
+    addAuditLog("UPDATED_WAREHOUSE_BIN", "INVENTORY", `Updated Bin ${updated.binCode}`);
+  };
+
+  const deleteWarehouseBin = (id: string) => {
+    const target = warehouseBins.find((b) => b.id === id);
+    setWarehouseBins((prev) => prev.filter((b) => b.id !== id));
+    addAuditLog(
+      "DELETED_WAREHOUSE_BIN",
+      "INVENTORY",
+      `Deleted Bin: ${target ? target.binCode : id}`,
+      "MEDIUM"
+    );
+  };
+
+  // Delivery creation and status updates
+  const createDelivery = (delData: Omit<DeliveryFleet, "id" | "trackingNumber">) => {
+    const newDel: DeliveryFleet = {
+      ...delData,
+      id: `DLV-${Date.now().toString().slice(-4)}`,
+      trackingNumber: `TRK-${new Date().toISOString().slice(2, 4)}${String(new Date().getMonth() + 1).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`,
+    };
+    setDeliveries((prev) => [newDel, ...prev]);
+    addAuditLog("CREATED_DELIVERY_DISPATCH", "INVENTORY", `Dispatched delivery ${newDel.trackingNumber} to ${newDel.recipientName}`);
+  };
+
+  const updateDeliveryStatus = (id: string, status: DeliveryFleet["status"]) => {
+    setDeliveries((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, status } : d))
+    );
+    addAuditLog("UPDATED_DELIVERY_STATUS", "INVENTORY", `Delivery ${id} status changed to ${status}`);
+  };
+
   const resetToDefaultData = () => {
     localStorage.clear();
     setBranches(INITIAL_BRANCHES);
@@ -1418,6 +1656,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setStockTransfers(INITIAL_STOCK_TRANSFERS);
     setStockAdjustments(INITIAL_STOCK_ADJUSTMENTS);
     setDeliveries(INITIAL_DELIVERIES);
+    setDeliveryTypes(INITIAL_DELIVERY_TYPES);
+    setWarehouseBins(INITIAL_WAREHOUSE_BINS);
     setWarrantyClaims(INITIAL_WARRANTY_CLAIMS);
     setAccounts(INITIAL_ACCOUNTS);
     setVouchers(INITIAL_VOUCHERS);
@@ -1452,6 +1692,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       stockTransfers,
       stockAdjustments,
       deliveries,
+      deliveryTypes,
+      warehouseBins,
       warrantyClaims,
       accounts,
       chartOfAccounts: accounts,
@@ -1484,6 +1726,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isCopilotOpen,
       setIsCopilotOpen,
       addAuditLog,
+      createWarehouse,
+      createDeliveryType,
+      updateDeliveryType,
+      deleteDeliveryType,
+      createWarehouseBin,
+      updateWarehouseBin,
+      deleteWarehouseBin,
+      createDelivery,
+      updateDeliveryStatus,
       createPurchaseOrder,
       createGRN,
       createStockTransfer,
@@ -1527,6 +1778,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       stockTransfers,
       stockAdjustments,
       deliveries,
+      deliveryTypes,
+      warehouseBins,
       warrantyClaims,
       accounts,
       vouchers,

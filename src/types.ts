@@ -113,6 +113,16 @@ export interface SaleOrder {
   imeiSold?: Record<string, string[]>; // productId -> serial numbers
   returnReason?: string;
   returnedItems?: { productId: string; quantity: number; refundAmount: number }[];
+  deliveryTrackingNumber?: string;
+  deliveryOption?: {
+    enabled: boolean;
+    deliveryTypeId?: string;
+    deliveryTypeName?: string;
+    address: string;
+    recipientName: string;
+    recipientPhone: string;
+    notes?: string;
+  };
 }
 
 export interface PurchaseOrder {
@@ -232,11 +242,50 @@ export interface StockAdjustment {
   approvedBy?: string;
 }
 
+export interface DeliveryType {
+  id: string;
+  code: string;
+  name: string;
+  nameMy: string;
+  vehicleCategory: "MOTORBIKE" | "LIGHT_VAN" | "THREE_TON_TRUCK" | "SIX_WHEELER" | "TWELVE_WHEELER" | "COLD_CHAIN_REEFER";
+  estimatedSLA: string; // e.g. "2-4 Hours (Same Day)", "24 Hours (Highway Express)", "48 Hours (Inter-State)"
+  baseRate: number; // in MMK
+  ratePerKm?: number;
+  maxWeightKg: number;
+  maxVolumeCbm?: number;
+  activeVehiclesCount: number;
+  status: "ACTIVE" | "INACTIVE";
+  description?: string;
+}
+
+export interface WarehouseBin {
+  id: string;
+  binCode: string; // e.g. "BIN-YGN-A01-R2-01"
+  warehouseId: string; // references branchId (e.g. BR-WH-01, BR-WH-MDY-01)
+  warehouseName: string;
+  warehouseCategory: "HIGH_VALUE_VAULT" | "COMPUTING_DISPLAYS" | "AUDIO_WEARABLES" | "FAST_MOVING_PICK" | "BULK_PALLET" | "DISPATCH_STAGING" | "QUARANTINE_RMA" | "GENERAL_STORAGE";
+  zone: string; // e.g. "Zone A (High-Value Secured)", "Zone B (Heavy Computing)"
+  aisle: string; // e.g. "A-01 to A-04"
+  rack: string; // e.g. "Rack R-02"
+  shelf: string; // e.g. "Shelf Tier 3"
+  maxCapacityUnits: number;
+  currentUnits: number;
+  occupancyPercentage: number;
+  designatedCategory: string; // e.g. "Smartphones, iPads", "MacBooks, Monitors"
+  barcode: string;
+  status: "AVAILABLE" | "NEAR_FULL" | "FULL" | "MAINTENANCE" | "RESERVED";
+  notes?: string;
+}
+
 export interface DeliveryFleet {
   id: string;
   trackingNumber: string;
   orderId?: string;
   transferId?: string;
+  deliveryTypeId?: string;
+  deliveryTypeName?: string;
+  warehouseId?: string;
+  warehouseName?: string;
   recipientName: string;
   recipientPhone: string;
   deliveryAddress: string;
