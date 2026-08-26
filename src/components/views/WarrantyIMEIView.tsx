@@ -1,23 +1,16 @@
 import React, { useState } from "react";
 import { useApp } from "../../context/AppContext";
-import { formatCurrency, formatDate, DICTIONARY } from "../../utils/helpers";
-import { RMATicket } from "../../types";
+import { formatDate } from "../../utils/helpers";
 import {
   ShieldAlert,
   Search,
   CheckCircle2,
-  AlertTriangle,
-  Wrench,
-  User,
   Plus,
   X,
-  FileText,
-  Building,
 } from "lucide-react";
 
 export const WarrantyIMEIView: React.FC = () => {
-  const { rmaTickets, orders, currency, language, createRMATicket, updateRMAStatus } = useApp();
-  const t = DICTIONARY[language];
+  const { rmaTickets, orders, language, createRMATicket, updateRMAStatus } = useApp();
 
   const [searchIMEI, setSearchIMEI] = useState("");
   const [lookupResult, setLookupResult] = useState<any | null>(null);
@@ -111,22 +104,21 @@ export const WarrantyIMEIView: React.FC = () => {
     });
 
     setShowNewRMAModal(false);
-    alert("RMA repair ticket generated and queued for service desk.");
   };
 
   return (
-    <div id="warranty-imei-view" className="space-y-5 animate-fade-in">
+    <div id="warranty-imei-view" className="space-y-5 animate-fade-in text-slate-800">
       {/* Top Header */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+      <div className="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+          <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200">
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-slate-100">
+            <h1 className="text-base font-bold text-slate-900">
               {language === "my" ? "အာမခံနှင့် IMEI စစ်ဆေးခြင်း / RMA ပြင်ဆင်မှု" : "Warranty, IMEI Tracking & RMA Service Desk"}
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500">
               Device Serial Validation • Hardware Warranty Ledger • RMA Repair Tickets
             </p>
           </div>
@@ -134,7 +126,7 @@ export const WarrantyIMEIView: React.FC = () => {
 
         <button
           onClick={() => setShowNewRMAModal(true)}
-          className="flex items-center space-x-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-sm transition-colors"
+          className="flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-all hover:scale-[1.02]"
         >
           <Plus className="w-4 h-4" />
           <span>{language === "my" ? "RMA လက်မှတ် အသစ်ဖွင့်မည်" : "Create RMA Ticket"}</span>
@@ -142,8 +134,8 @@ export const WarrantyIMEIView: React.FC = () => {
       </div>
 
       {/* IMEI Search Engine Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
           Search Device Serial Number / IMEI
         </h2>
 
@@ -155,12 +147,12 @@ export const WarrantyIMEIView: React.FC = () => {
               placeholder="e.g. 358923114567890 or SN-APL-8890"
               value={searchIMEI}
               onChange={(e) => setSearchIMEI(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-100 font-mono placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 font-mono placeholder-slate-400 focus:outline-none focus:border-emerald-500"
             />
           </div>
           <button
             type="submit"
-            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
+            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
           >
             Verify Warranty
           </button>
@@ -168,45 +160,45 @@ export const WarrantyIMEIView: React.FC = () => {
 
         {/* Verification Result Banner */}
         {lookupResult && (
-          <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800 space-y-3 animate-fade-in">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 animate-fade-in">
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className="font-mono font-bold text-sm text-slate-100">IMEI: {lookupResult.imei}</span>
+                  <span className="font-mono font-bold text-sm text-slate-900">IMEI: {lookupResult.imei}</span>
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                       !lookupResult.isExpired
-                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                        : "bg-rose-500/20 text-rose-300 border-rose-500/30"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : "bg-rose-50 text-rose-700 border-rose-200"
                     }`}
                   >
                     {!lookupResult.isExpired ? "✓ Warranty Active" : "✗ Warranty Expired"}
                   </span>
                 </div>
-                <h3 className="font-bold text-xs text-indigo-400 mt-1">{lookupResult.productName}</h3>
+                <h3 className="font-bold text-xs text-emerald-800 mt-1">{lookupResult.productName}</h3>
               </div>
-              <div className="text-right text-[11px] text-slate-400">
+              <div className="text-right text-[11px] text-slate-500">
                 <span>Invoice: </span>
-                <span className="font-mono font-bold text-slate-200">{lookupResult.orderNumber}</span>
+                <span className="font-mono font-bold text-slate-900">{lookupResult.orderNumber}</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2 border-t border-slate-800">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2 border-t border-slate-200">
               <div>
                 <span className="text-[10px] text-slate-500">Customer</span>
-                <div className="font-medium text-slate-200 mt-0.5">{lookupResult.customerName}</div>
+                <div className="font-semibold text-slate-900 mt-0.5">{lookupResult.customerName}</div>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500">Selling Outlet</span>
-                <div className="font-medium text-slate-200 mt-0.5">{lookupResult.branchName}</div>
+                <div className="font-semibold text-slate-900 mt-0.5">{lookupResult.branchName}</div>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500">Purchase Date</span>
-                <div className="font-medium text-slate-200 mt-0.5">{formatDate(lookupResult.purchaseDate)}</div>
+                <div className="font-semibold text-slate-900 mt-0.5">{formatDate(lookupResult.purchaseDate)}</div>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500">Coverage Valid Until</span>
-                <div className="font-bold text-emerald-400 mt-0.5">{formatDate(lookupResult.warrantyExpiresAt)}</div>
+                <div className="font-bold text-emerald-700 mt-0.5">{formatDate(lookupResult.warrantyExpiresAt)}</div>
               </div>
             </div>
           </div>
@@ -214,55 +206,55 @@ export const WarrantyIMEIView: React.FC = () => {
       </div>
 
       {/* RMA Service Tickets List */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
             Active RMA Repair & Service Tickets ({rmaTickets.length})
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {rmaTickets.map((rma) => (
-            <div key={rma.id} className="bg-slate-950/80 p-4 rounded-xl border border-slate-800 space-y-3">
+            <div key={rma.id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="font-mono font-bold text-sm text-slate-100">{rma.ticketNumber}</span>
-                    <span className="text-[10px] font-mono text-slate-400">{rma.imei}</span>
+                    <span className="font-mono font-bold text-sm text-slate-900">{rma.ticketNumber}</span>
+                    <span className="text-[10px] font-mono text-slate-500">{rma.imei}</span>
                   </div>
-                  <h3 className="font-bold text-xs text-slate-200 mt-0.5">{rma.productName}</h3>
+                  <h3 className="font-bold text-xs text-slate-800 mt-0.5">{rma.productName}</h3>
                 </div>
                 <span
                   className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                     rma.status === "REPAIRED"
-                      ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                       : rma.status === "UNDER_INSPECTION"
-                      ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
-                      : "bg-blue-500/20 text-blue-300 border-blue-500/30"
+                      ? "bg-amber-50 text-amber-700 border-amber-200"
+                      : "bg-blue-50 text-blue-700 border-blue-200"
                   }`}
                 >
                   {rma.status.replace("_", " ")}
                 </span>
               </div>
 
-              <div className="space-y-1 text-xs text-slate-300">
-                <p className="text-[11px] text-slate-400 italic">Issue: "{rma.issueDescription}"</p>
+              <div className="space-y-1 text-xs text-slate-700">
+                <p className="text-[11px] text-slate-600 italic">Issue: "{rma.issueDescription}"</p>
                 <div className="flex justify-between pt-1">
                   <span className="text-slate-500">Technician:</span>
-                  <span className="font-medium text-slate-200">{rma.assignedTechnician}</span>
+                  <span className="font-medium text-slate-900">{rma.assignedTechnician}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Customer:</span>
-                  <span className="text-slate-300">{rma.customerName} ({rma.customerPhone})</span>
+                  <span className="text-slate-700">{rma.customerName} ({rma.customerPhone})</span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
+              <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-xs">
                 <span className="text-[10px] text-slate-500">{formatDate(rma.createdAt)}</span>
                 {rma.status !== "REPAIRED" && (
                   <button
                     onClick={() => updateRMAStatus(rma.id, "REPAIRED")}
-                    className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-semibold text-xs flex items-center space-x-1"
+                    className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-semibold text-xs flex items-center space-x-1 shadow-xs transition-colors"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Mark Repaired</span>
@@ -276,74 +268,74 @@ export const WarrantyIMEIView: React.FC = () => {
 
       {/* New RMA Modal */}
       {showNewRMAModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-slate-200 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-sm text-slate-100">Create RMA Service / Repair Ticket</h3>
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 text-slate-800 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-sm text-slate-900">Create RMA Service / Repair Ticket</h3>
               <button onClick={() => setShowNewRMAModal(false)}>
-                <X className="w-5 h-5 text-slate-400" />
+                <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
               </button>
             </div>
 
             <form onSubmit={handleCreateRMA} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1">Device IMEI / Serial</label>
+                <label className="block text-slate-600 mb-1 font-medium">Device IMEI / Serial</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. 358923114567890"
                   value={newRMA.imei}
                   onChange={(e) => setNewRMA({ ...newRMA, imei: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:border-emerald-500 font-bold"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Product Description</label>
+                <label className="block text-slate-600 mb-1 font-medium">Product Description</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. iPhone 16 Pro Max 256GB"
                   value={newRMA.productName}
                   onChange={(e) => setNewRMA({ ...newRMA, productName: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Customer Name</label>
+                <label className="block text-slate-600 mb-1 font-medium">Customer Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Daw Thida Win"
                   value={newRMA.customerName}
                   onChange={(e) => setNewRMA({ ...newRMA, customerName: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Diagnosed Fault / Issue Description</label>
+                <label className="block text-slate-600 mb-1 font-medium">Diagnosed Fault / Issue Description</label>
                 <textarea
                   required
                   rows={2}
                   placeholder="e.g. Display backlight flickering intermittently"
                   value={newRMA.issueDescription}
                   onChange={(e) => setNewRMA({ ...newRMA, issueDescription: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500 resize-none"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 resize-none font-medium"
                 />
               </div>
 
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowNewRMAModal(false)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-medium"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold shadow-sm"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold shadow-xs transition-all hover:scale-[1.02]"
                 >
                   Generate RMA Ticket
                 </button>

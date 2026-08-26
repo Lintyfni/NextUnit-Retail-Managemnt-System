@@ -1,6 +1,6 @@
 {
-  "name": "OmniChain Enterprise ERP & POS",
-  "description": "Comprehensive Retail POS, Inventory, Supply Chain, Accounting, CRM & HRM ERP system with Myanmar/English bilingual support.",
+  "name": "NextUnit Tech - Retail POS & Management System",
+  "description": "NextUnit Tech - Modern Retail POS Management System with Inventory, Accounting, Loyalty CRM, and Bilingual Support.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

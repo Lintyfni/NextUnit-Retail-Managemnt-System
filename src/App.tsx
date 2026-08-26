@@ -56,7 +56,7 @@ const MainContent: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-950 text-slate-100 min-h-[calc(100vh-53px)] custom-scrollbar">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-5 bg-slate-50 text-slate-800 min-h-[calc(100vh-57px)] custom-scrollbar">
       <div className="max-w-7xl mx-auto">{renderCurrentView()}</div>
     </div>
   );
@@ -65,7 +65,7 @@ const MainContent: React.FC = () => {
 export default function App() {
   return (
     <AppProvider>
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+      <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans antialiased selection:bg-emerald-600 selection:text-white">
         <Header />
         <div className="flex flex-1 overflow-hidden">
           <Sidebar />

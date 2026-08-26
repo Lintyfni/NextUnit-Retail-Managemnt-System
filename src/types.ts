@@ -211,7 +211,7 @@ export interface StockTransfer {
   receivedAt?: string;
   driverName?: string;
   vehicleNumber?: string;
-  status: "REQUESTED" | "IN_TRANSIT" | "RECEIVED" | "CANCELLED";
+  status: "REQUESTED" | "PENDING" | "IN_TRANSIT" | "RECEIVED" | "CANCELLED";
   notes: string;
 }
 
@@ -226,10 +226,10 @@ export interface StockAdjustment {
   previousStock: number;
   adjustedStock: number;
   difference: number;
-  reason: "CYCLE_COUNT" | "DAMAGED" | "EXPIRED" | "SHRINKAGE_THEFT" | "PROMO_SAMPLE";
+  reason: "CYCLE_COUNT" | "DAMAGED" | "EXPIRED" | "SHRINKAGE_THEFT" | "PROMO_SAMPLE" | string;
   adjustedBy: string;
   date: string;
-  approvedBy: string;
+  approvedBy?: string;
 }
 
 export interface DeliveryFleet {

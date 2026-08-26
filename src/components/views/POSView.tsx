@@ -86,7 +86,7 @@ const CartQtyInput: React.FC<CartQtyInputProps> = ({ value, onChange }) => {
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       onFocus={(e) => e.target.select()}
-      className="w-12 bg-slate-950 border border-slate-700 rounded text-center text-xs font-bold font-mono text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 py-0.5"
+      className="w-12 bg-white border border-slate-300 rounded text-center text-xs font-bold font-mono text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 py-0.5"
       title="Click and type any quantity (အရေအတွက် ရိုက်ထည့်ပါ)"
     />
   );
@@ -365,23 +365,23 @@ export const POSView: React.FC = () => {
   };
 
   return (
-    <div id="pos-billing-view" className="space-y-4 animate-fade-in">
+    <div id="pos-billing-view" className="space-y-4 animate-fade-in text-slate-800">
       {/* Top POS Action Toolbar */}
-      <div className="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-md">
+      <div className="bg-white border border-slate-200 p-3.5 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center space-x-2.5">
-          <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+          <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200">
             <ShoppingCart className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-sm font-bold text-slate-100">
+              <h1 className="text-sm font-bold text-slate-900">
                 {language === "my" ? "POS ကောင်တာ အရောင်းစနစ်" : "POS Billing & Fast Checkout"}
               </h1>
-              <span className="text-[10px] px-2 py-0.5 bg-slate-800 text-indigo-300 rounded font-mono font-semibold border border-slate-700">
+              <span className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded font-mono font-bold border border-emerald-200">
                 {currentBranch.name}
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">Barcode Ready • Split Payments • RMA Warranty Tracking</p>
+            <p className="text-[11px] text-slate-500">Barcode Ready • Split Payments • RMA Warranty Tracking</p>
           </div>
         </div>
 
@@ -391,10 +391,10 @@ export const POSView: React.FC = () => {
           <button
             id="quick-sn-lookup-btn"
             onClick={() => setShowSNFinderModal(true)}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 hover:border-indigo-500/50 transition-colors"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-xl text-xs font-semibold border border-slate-200 hover:border-emerald-300 transition-colors"
             title="Browse and select available Serial Numbers with Stock Qty"
           >
-            <Filter className="w-4 h-4 text-indigo-400" />
+            <Filter className="w-4 h-4 text-emerald-600" />
             <span>{language === "my" ? "SN ရွေးချယ်/ရှာဖွေမည်" : "Select SN Code"}</span>
           </button>
 
@@ -402,10 +402,10 @@ export const POSView: React.FC = () => {
           <button
             id="simulate-barcode-scan-btn"
             onClick={handleSimulateScan}
-            className="flex items-center space-x-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 transition-colors"
+            className="flex items-center space-x-1 px-3 py-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-xl text-xs font-semibold border border-slate-200 hover:border-emerald-300 transition-colors"
             title="Simulate Barcode Scanner Hardware input"
           >
-            <Barcode className="w-4 h-4 text-indigo-400" />
+            <Barcode className="w-4 h-4 text-emerald-600" />
             <span>{language === "my" ? "ဘားကုတ် စကင်ဖတ်မည်" : "Scan Barcode"}</span>
           </button>
 
@@ -413,12 +413,12 @@ export const POSView: React.FC = () => {
           <button
             id="parked-tickets-btn"
             onClick={() => setShowParkedModal(true)}
-            className="flex items-center space-x-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 transition-colors relative"
+            className="flex items-center space-x-1 px-3 py-1.5 bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-800 rounded-xl text-xs font-semibold border border-slate-200 hover:border-amber-300 transition-colors relative"
           >
-            <PauseCircle className="w-4 h-4 text-amber-400" />
+            <PauseCircle className="w-4 h-4 text-amber-600" />
             <span>{language === "my" ? "ဆိုင်းငံ့အော်ဒါများ" : "Held Tickets"}</span>
             {parkedTickets.length > 0 && (
-              <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 font-bold text-[10px] flex items-center justify-center">
+              <span className="w-4 h-4 rounded-full bg-amber-500 text-white font-bold text-[10px] flex items-center justify-center">
                 {parkedTickets.length}
               </span>
             )}
@@ -428,9 +428,9 @@ export const POSView: React.FC = () => {
           <button
             id="returns-refunds-btn"
             onClick={() => setShowReturnsModal(true)}
-            className="flex items-center space-x-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-300 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 transition-colors"
+            className="flex items-center space-x-1 px-3 py-1.5 bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 rounded-xl text-xs font-semibold border border-slate-200 hover:border-rose-300 transition-colors"
           >
-            <RotateCcw className="w-4 h-4 text-rose-400" />
+            <RotateCcw className="w-4 h-4 text-rose-500" />
             <span>{language === "my" ? "ပစ္စည်းပြန်သွင်း/ငွေပြန်အမ်း" : "Returns & Refund"}</span>
           </button>
         </div>
@@ -441,7 +441,7 @@ export const POSView: React.FC = () => {
         {/* Left: Product Catalog (7 Cols) */}
         <div className="lg:col-span-7 space-y-3">
           {/* Search & Category Filter Pills */}
-          <div className="bg-slate-900 border border-slate-800 p-3 rounded-2xl space-y-2.5">
+          <div className="bg-white border border-slate-200 p-3 rounded-2xl space-y-2.5 shadow-xs">
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
@@ -449,7 +449,7 @@ export const POSView: React.FC = () => {
                 placeholder={language === "my" ? "SKU, ဘားကုတ်, ပစ္စည်းအမည် ဖြင့် ရှာပါ..." : "Search products by SKU, name, barcode..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
               />
             </div>
 
@@ -458,10 +458,10 @@ export const POSView: React.FC = () => {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap transition-colors ${
+                  className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-colors ${
                     selectedCategory === cat
-                      ? "bg-indigo-600 text-white font-semibold shadow-sm"
-                      : "bg-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                      ? "bg-emerald-600 text-white font-bold shadow-xs"
+                      : "bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/80"
                   }`}
                 >
                   {cat}
@@ -480,27 +480,27 @@ export const POSView: React.FC = () => {
                 <div
                   key={prod.id}
                   onClick={() => handleOpenItemModal(prod)}
-                  className="bg-slate-900 border border-slate-800 hover:border-indigo-500/80 rounded-2xl p-3 flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.02] shadow-sm group"
+                  className="bg-white border border-slate-200 hover:border-emerald-400 rounded-2xl p-3 flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] hover:shadow-sm shadow-xs group"
                 >
                   <div className="space-y-2">
-                    <div className="h-28 w-full bg-slate-950 rounded-xl overflow-hidden relative">
+                    <div className="h-28 w-full bg-slate-100 rounded-xl overflow-hidden relative border border-slate-100">
                       <img
                         src={prod.image}
                         alt={prod.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       {prod.hasIMEI && (
-                        <span className="absolute top-2 left-2 px-1.5 py-0.5 bg-slate-900/90 text-indigo-300 font-mono text-[9px] font-bold rounded border border-indigo-500/30">
+                        <span className="absolute top-2 left-2 px-1.5 py-0.5 bg-emerald-700/90 text-white font-mono text-[9px] font-bold rounded shadow-xs">
                           IMEI/SN
                         </span>
                       )}
                       <span
-                        className={`absolute top-2 right-2 px-1.5 py-0.5 text-[9px] font-bold rounded ${
+                        className={`absolute top-2 right-2 px-1.5 py-0.5 text-[9px] font-bold rounded shadow-xs ${
                           currentStock === 0
-                            ? "bg-rose-500/80 text-white"
+                            ? "bg-rose-500 text-white"
                             : isLowStock
-                            ? "bg-amber-500/80 text-slate-950"
-                            : "bg-emerald-500/80 text-white"
+                            ? "bg-amber-500 text-white font-bold"
+                            : "bg-emerald-600 text-white font-semibold"
                         }`}
                       >
                         {currentStock} in stock
@@ -509,16 +509,16 @@ export const POSView: React.FC = () => {
 
                     <div>
                       <div className="text-[10px] text-slate-400 font-mono">{prod.sku}</div>
-                      <h3 className="font-bold text-xs text-slate-200 line-clamp-2 leading-tight">
+                      <h3 className="font-bold text-xs text-slate-900 line-clamp-2 leading-tight">
                         {prod.name}
                       </h3>
                     </div>
                   </div>
 
-                  <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between">
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
                     <div>
-                      <div className="text-[10px] text-slate-400">ရောင်းဈေး</div>
-                      <span className="font-bold text-xs text-emerald-400 font-mono">
+                      <div className="text-[10px] text-slate-500">ရောင်းဈေး</div>
+                      <span className="font-bold text-xs text-emerald-700 font-mono">
                         {formatCurrency(prod.sellingPrice, currency, language)}
                       </span>
                     </div>
@@ -527,7 +527,7 @@ export const POSView: React.FC = () => {
                         e.stopPropagation();
                         handleOpenItemModal(prod);
                       }}
-                      className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm flex items-center gap-1 text-[11px] font-semibold"
+                      className="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs flex items-center gap-1 text-[11px] font-bold"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>ရောင်းမည်</span>
@@ -540,16 +540,16 @@ export const POSView: React.FC = () => {
         </div>
 
         {/* Right: Active Cart & Checkout Panel (5 Cols) */}
-        <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between space-y-4 shadow-md">
+        <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-4 flex flex-col justify-between space-y-4 shadow-xs">
           {/* Cart Top: Customer Selector & Clear */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setShowCustomerModal(true)}
-                  className="flex items-center space-x-1.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 transition-colors"
+                  className="flex items-center space-x-1.5 px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-lg text-xs font-semibold border border-slate-200 hover:border-emerald-300 transition-colors"
                 >
-                  <User className="w-3.5 h-3.5 text-indigo-400" />
+                  <User className="w-3.5 h-3.5 text-emerald-600" />
                   <span>
                     {activeCustomer ? `${activeCustomer.name} (${activeCustomer.membershipTier})` : "Assign VIP Customer"}
                   </span>
@@ -557,7 +557,7 @@ export const POSView: React.FC = () => {
                 {activeCustomer && (
                   <button
                     onClick={() => setActiveCustomer(null)}
-                    className="text-slate-400 hover:text-rose-400 p-1"
+                    className="text-slate-400 hover:text-rose-500 p-1"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -568,7 +568,7 @@ export const POSView: React.FC = () => {
                 <button
                   onClick={() => parkCurrentCart()}
                   disabled={cart.length === 0}
-                  className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg disabled:opacity-30 transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-slate-100 rounded-lg disabled:opacity-30 transition-colors"
                   title="Park / Hold Order"
                 >
                   <PauseCircle className="w-4 h-4" />
@@ -576,7 +576,7 @@ export const POSView: React.FC = () => {
                 <button
                   onClick={() => clearCart()}
                   disabled={cart.length === 0}
-                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg disabled:opacity-30 transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-slate-100 rounded-lg disabled:opacity-30 transition-colors"
                   title="Clear Cart"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -587,10 +587,10 @@ export const POSView: React.FC = () => {
             {/* Cart Line Items - Formatted with high readability, justified layout, Selling Price & Discount % display */}
             <div className="space-y-2.5 max-h-72 overflow-y-auto custom-scrollbar pr-1">
               {cart.length === 0 ? (
-                <div className="text-center py-10 text-slate-500 text-xs">
-                  <ShoppingCart className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                  <span>Cart is currently empty</span>
-                  <p className="text-[11px] text-slate-600 mt-1">Select items or scan barcode to add</p>
+                <div className="text-center py-10 text-slate-400 text-xs">
+                  <ShoppingCart className="w-8 h-8 mx-auto mb-2 opacity-30 text-emerald-600" />
+                  <span className="font-semibold text-slate-600">Cart is currently empty</span>
+                  <p className="text-[11px] text-slate-400 mt-1">Select items or scan barcode to add</p>
                 </div>
               ) : (
                 cart.map((item, idx) => {
@@ -602,34 +602,34 @@ export const POSView: React.FC = () => {
                   return (
                     <div
                       key={idx}
-                      className="bg-slate-950/85 p-3 rounded-xl border border-slate-800/90 space-y-2 transition-all hover:border-slate-700"
+                      className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 transition-all hover:border-emerald-300"
                     >
                       {/* Top row: Item Name and Status Badges */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-semibold text-slate-100 text-xs leading-snug line-clamp-1">
+                          <h4 className="font-bold text-slate-900 text-xs leading-snug line-clamp-1">
                             {item.product.name}
                           </h4>
-                          <span className="text-[10px] text-slate-500 font-mono">{item.product.sku}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">{item.product.sku}</span>
                         </div>
 
                         {/* Badges for FOC or Discount */}
                         <div className="flex items-center gap-1 shrink-0">
                           {item.isFOC ? (
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
-                              <Gift className="w-3 h-3" />
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                              <Gift className="w-3 h-3 text-emerald-600" />
                               <span>FOC (အခမဲ့)</span>
                             </span>
                           ) : hasDiscount ? (
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
-                              <Percent className="w-3 h-3" />
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
+                              <Percent className="w-3 h-3 text-amber-600" />
                               <span>Dis: -{item.discountPercent}%</span>
                             </span>
                           ) : null}
 
                           <button
                             onClick={() => removeFromCart(idx)}
-                            className="text-slate-500 hover:text-rose-400 p-1 transition-colors"
+                            className="text-slate-400 hover:text-rose-600 p-1 transition-colors"
                             title="Remove from cart"
                           >
                             <X className="w-3.5 h-3.5" />
@@ -638,38 +638,38 @@ export const POSView: React.FC = () => {
                       </div>
 
                       {/* Middle row: Selling Price & Discount Breakdown & SN / Cash Back */}
-                      <div className="flex items-center justify-between text-[11px] bg-slate-900/70 px-2.5 py-1.5 rounded-lg border border-slate-800/60">
-                        <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 text-slate-400">
+                      <div className="flex items-center justify-between text-[11px] bg-white px-2.5 py-1.5 rounded-lg border border-slate-200">
+                        <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 text-slate-600">
                           <span>
                             {language === "my" ? "ရောင်းဈေး:" : "Selling Price:"}{" "}
                             {item.isFOC ? (
-                              <span className="line-through text-slate-500 font-mono">
+                              <span className="line-through text-slate-400 font-mono">
                                 {formatCurrency(originalSellingPrice, currency, language)}
                               </span>
                             ) : hasDiscount ? (
                               <>
-                                <span className="line-through text-slate-500 font-mono">
+                                <span className="line-through text-slate-400 font-mono">
                                   {formatCurrency(originalSellingPrice, currency, language)}
                                 </span>
-                                <span className="text-amber-300 font-bold font-mono ml-1">
+                                <span className="text-amber-700 font-bold font-mono ml-1">
                                   {formatCurrency(item.unitPrice, currency, language)}
                                 </span>
                               </>
                             ) : (
-                              <span className="text-slate-200 font-mono font-medium">
+                              <span className="text-slate-900 font-mono font-semibold">
                                 {formatCurrency(item.unitPrice, currency, language)}
                               </span>
                             )}
                           </span>
 
                           {hasDiscount && (
-                            <span className="text-amber-400/90 text-[10px] font-mono">
+                            <span className="text-amber-700 text-[10px] font-mono font-bold">
                               (-{item.discountPercent}%)
                             </span>
                           )}
 
                           {item.isFOC && (
-                            <span className="text-emerald-400 font-bold font-mono">
+                            <span className="text-emerald-700 font-bold font-mono">
                               0 Ks (Free)
                             </span>
                           )}
@@ -678,18 +678,18 @@ export const POSView: React.FC = () => {
                         {/* Right: SN and Cash Back Amount */}
                         <div className="flex flex-col items-end gap-1 shrink-0">
                           {item.imeiList && item.imeiList.length > 0 && (
-                            <div className="text-[10px] text-indigo-300 font-mono flex items-center gap-1 shrink-0">
-                              <ShieldCheck className="w-3 h-3 text-indigo-400" />
+                            <div className="text-[10px] text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-mono flex items-center gap-1 shrink-0">
+                              <ShieldCheck className="w-3 h-3 text-emerald-600" />
                               <span>SN: {item.imeiList[0]}</span>
                             </div>
                           )}
 
                           {matchedCashback > 0 && (
                             <div
-                              className="text-[10px] text-amber-300 font-mono font-bold flex items-center gap-1 bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30"
+                              className="text-[10px] text-amber-800 font-mono font-bold flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200"
                               title={language === "my" ? `Cash Back ပမာဏ: ${formatCurrency(matchedCashback, currency, language)}` : `Cash Back: ${formatCurrency(matchedCashback, currency, language)}`}
                             >
-                              <Coins className="w-3 h-3 text-amber-400 shrink-0" />
+                              <Coins className="w-3 h-3 text-amber-600 shrink-0" />
                               <span>({formatCurrency(matchedCashback, currency, language)} Cash Back)</span>
                             </div>
                           )}
@@ -697,14 +697,14 @@ export const POSView: React.FC = () => {
                       </div>
 
                       {/* Bottom row: Quantity controls, Quick edit & Total Amount */}
-                      <div className="flex items-center justify-between pt-1 border-t border-slate-900/80">
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
                         {/* Left: Quantity Adjuster & Quick Edit */}
                         <div className="flex items-center space-x-2">
-                          <div className="flex items-center space-x-1 bg-slate-900 border border-slate-700 px-1.5 py-0.5 rounded-lg">
+                          <div className="flex items-center space-x-1 bg-white border border-slate-300 px-1.5 py-0.5 rounded-lg shadow-xs">
                             <button
                               type="button"
                               onClick={() => updateCartQuantity(idx, Math.max(1, item.quantity - 1))}
-                              className="p-1 text-slate-400 hover:text-white transition-colors"
+                              className="p-1 text-slate-500 hover:text-slate-900 transition-colors"
                               title="Decrease quantity"
                             >
                               <Minus className="w-3 h-3" />
@@ -716,7 +716,7 @@ export const POSView: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => updateCartQuantity(idx, item.quantity + 1)}
-                              className="p-1 text-slate-400 hover:text-white transition-colors"
+                              className="p-1 text-slate-500 hover:text-slate-900 transition-colors"
                               title="Increase quantity"
                             >
                               <Plus className="w-3 h-3" />
@@ -725,10 +725,10 @@ export const POSView: React.FC = () => {
 
                           <button
                             onClick={() => handleOpenCartEdit(idx)}
-                            className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-[10px] font-semibold border border-slate-700 flex items-center gap-1 transition-colors"
+                            className="px-2 py-1 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-lg text-[10px] font-semibold border border-slate-200 hover:border-emerald-300 flex items-center gap-1 transition-colors"
                             title="Edit FOC or Discount %"
                           >
-                            <Edit3 className="w-3 h-3 text-indigo-400" />
+                            <Edit3 className="w-3 h-3 text-emerald-600" />
                             <span>FOC / Dis %</span>
                           </button>
                         </div>
@@ -736,20 +736,20 @@ export const POSView: React.FC = () => {
                         {/* Right: Calculated Line Total */}
                         <div className="text-right">
                           {item.isFOC ? (
-                            <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/50">
+                            <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                               0 Ks
                             </span>
                           ) : hasDiscount ? (
                             <div>
-                              <div className="text-[10px] line-through text-slate-500 font-mono leading-none">
+                              <div className="text-[10px] line-through text-slate-400 font-mono leading-none">
                                 {formatCurrency(originalSellingPrice * item.quantity, currency, language)}
                               </div>
-                              <div className="text-xs font-mono font-bold text-amber-300 leading-tight">
+                              <div className="text-xs font-mono font-bold text-emerald-700 leading-tight">
                                 {formatCurrency(item.unitPrice * item.quantity, currency, language)}
                               </div>
                             </div>
                           ) : (
-                            <span className="text-xs font-mono font-bold text-slate-100">
+                            <span className="text-xs font-mono font-bold text-slate-900">
                               {formatCurrency(item.unitPrice * item.quantity, currency, language)}
                             </span>
                           )}
@@ -763,29 +763,29 @@ export const POSView: React.FC = () => {
           </div>
 
           {/* Cart Bottom: Coupon, Financial Totals, Complete Sale Button */}
-          <div className="space-y-3 border-t border-slate-800 pt-3">
+          <div className="space-y-3 border-t border-slate-100 pt-3">
             {/* Promo Code Input & Active Coupon Display */}
             {appliedPromo ? (
-              <div className="flex items-center justify-between px-3 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 animate-fade-in">
+              <div className="flex items-center justify-between px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 animate-fade-in">
                 <div className="flex items-center space-x-2">
-                  <Tag className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <Tag className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   <div className="min-w-0">
                     <div className="flex items-center space-x-1.5">
-                      <span className="font-mono font-bold">{appliedPromo}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold">
+                      <span className="font-mono font-bold text-emerald-900">{appliedPromo}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-900 font-bold">
                         {activePromoRule?.type === "FIXED_AMOUNT" || activePromoRule?.type === "HAPPY_HOUR"
                           ? `-${formatCurrency(activePromoRule?.discountValue || promoDiscount, currency, language)} တိုက်ရိုက်လျှော့`
                           : `-${activePromoRule?.discountValue || 10}% OFF`}
                       </span>
                     </div>
                     {activePromoRule?.title && (
-                      <p className="text-[10px] text-slate-400 truncate">{activePromoRule.title}</p>
+                      <p className="text-[10px] text-emerald-700 truncate">{activePromoRule.title}</p>
                     )}
                   </div>
                 </div>
                 <button
                   onClick={() => setAppliedPromo(null)}
-                  className="text-slate-400 hover:text-rose-400 p-1 rounded-lg hover:bg-slate-800 transition-colors shrink-0"
+                  className="text-slate-400 hover:text-rose-600 p-1 rounded-lg hover:bg-emerald-100 transition-colors shrink-0"
                   title="Remove Coupon"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -801,11 +801,11 @@ export const POSView: React.FC = () => {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleApplyPromo();
                   }}
-                  className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-100 uppercase focus:outline-none focus:border-indigo-500 font-mono"
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 uppercase placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white font-mono transition-colors"
                 />
                 <button
                   onClick={handleApplyPromo}
-                  className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs shadow-sm transition-colors"
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-xs transition-colors"
                 >
                   {language === "my" ? "အသုံးပြုမည်" : "Apply"}
                 </button>
@@ -813,28 +813,28 @@ export const POSView: React.FC = () => {
             )}
 
             {/* Financial Summary */}
-            <div className="space-y-1.5 text-xs text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+            <div className="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
-                <span className="font-mono font-bold text-slate-200">
+                <span className="font-mono font-bold text-slate-800">
                   {formatCurrency(subtotal, currency, language)}
                 </span>
               </div>
               {effectiveDiscount > 0 && (
-                <div className="flex justify-between text-emerald-400">
+                <div className="flex justify-between text-emerald-700 font-medium">
                   <span>Discounts & VIP Perks:</span>
                   <span className="font-mono font-bold">
                     -{formatCurrency(effectiveDiscount, currency, language)}
                   </span>
                 </div>
               )}
-              <div className="flex justify-between text-slate-400">
+              <div className="flex justify-between text-slate-600">
                 <span>Commercial Tax (5% IRD):</span>
                 <span className="font-mono">{formatCurrency(taxAmount, currency, language)}</span>
               </div>
-              <div className="flex justify-between text-sm font-bold text-slate-100 pt-1.5 border-t border-slate-800">
+              <div className="flex justify-between text-sm font-bold text-slate-900 pt-1.5 border-t border-slate-200">
                 <span>Grand Total:</span>
-                <span className="font-mono text-emerald-400">
+                <span className="font-mono text-emerald-700 font-bold">
                   {formatCurrency(grandTotal, currency, language)}
                 </span>
               </div>
@@ -845,7 +845,7 @@ export const POSView: React.FC = () => {
               id="pos-pay-button"
               disabled={cart.length === 0}
               onClick={handleOpenPayment}
-              className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-40 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center space-x-2"
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center space-x-2"
             >
               <Banknote className="w-4 h-4" />
               <span>
@@ -859,44 +859,44 @@ export const POSView: React.FC = () => {
 
       {/* Item Sales & Serial Modal with FOC & Discount % Options */}
       {selectedProductForModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 space-y-4 text-slate-200 shadow-2xl animate-fade-in">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-5 space-y-4 text-slate-800 shadow-2xl animate-fade-in">
             {/* Modal Header */}
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
-                <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200">
                   <ShoppingCart className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-slate-100">
+                  <h3 className="font-bold text-sm text-slate-900">
                     {language === "my" ? "အရောင်းအချက်အလက် & Serial / FOC / Dis % ရွေးချယ်မှု" : "Item Sale & Serial / FOC / Discount %"}
                   </h3>
-                  <p className="text-[11px] text-slate-400">Configure Serial, Free of Charge (FOC) or Item Discount %</p>
+                  <p className="text-[11px] text-slate-500">Configure Serial, Free of Charge (FOC) or Item Discount %</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedProductForModal(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Product Summary */}
-            <div className="flex items-center space-x-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <div className="flex items-center space-x-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
               <img
                 src={selectedProductForModal.image}
                 alt={selectedProductForModal.name}
-                className="w-12 h-12 object-cover rounded-lg bg-slate-900 border border-slate-800"
+                className="w-12 h-12 object-cover rounded-lg bg-white border border-slate-200"
               />
               <div className="min-w-0 flex-1">
-                <h4 className="font-bold text-xs text-slate-100 truncate">{selectedProductForModal.name}</h4>
+                <h4 className="font-bold text-xs text-slate-900 truncate">{selectedProductForModal.name}</h4>
                 <div className="flex items-center gap-2 mt-0.5 text-[11px]">
-                  <span className="text-slate-400 font-mono">{selectedProductForModal.sku}</span>
-                  <span className="text-slate-600">•</span>
-                  <span className="text-slate-400">
+                  <span className="text-slate-500 font-mono">{selectedProductForModal.sku}</span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-600">
                     ရောင်းဈေး:{" "}
-                    <strong className="text-emerald-400 font-mono">
+                    <strong className="text-emerald-700 font-mono font-bold">
                       {formatCurrency(selectedProductForModal.sellingPrice, currency, language)}
                     </strong>
                   </span>
@@ -923,8 +923,8 @@ export const POSView: React.FC = () => {
               <div
                 className={`p-3 rounded-xl border transition-all ${
                   itemModalIsFOC
-                    ? "bg-emerald-950/30 border-emerald-500/60 ring-1 ring-emerald-500/30"
-                    : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
+                    ? "bg-emerald-50 border-emerald-300 ring-1 ring-emerald-300"
+                    : "bg-slate-50 border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -939,27 +939,27 @@ export const POSView: React.FC = () => {
                           setItemModalIsDiscount(false);
                         }
                       }}
-                      className="w-4 h-4 rounded text-emerald-600 bg-slate-900 border-slate-700 focus:ring-emerald-500"
+                      className="w-4 h-4 rounded text-emerald-600 bg-white border-slate-300 focus:ring-emerald-500"
                     />
-                    <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                      <Gift className="w-3.5 h-3.5" />
+                    <span className="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                      <Gift className="w-3.5 h-3.5 text-emerald-600" />
                       <span>FOC (အခမဲ့ လက်ဆောင်)</span>
                     </span>
                   </label>
                 </div>
 
                 {itemModalIsFOC && (
-                  <div className="mt-2.5 pt-2.5 border-t border-emerald-900/40 space-y-2 animate-fade-in">
+                  <div className="mt-2.5 pt-2.5 border-t border-emerald-200 space-y-2 animate-fade-in">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-300 font-medium">FOC Qty (အရေအတွက်):</span>
-                      <div className="flex items-center space-x-1.5 bg-slate-900 border border-emerald-800/60 px-2 py-0.5 rounded-lg">
+                      <span className="text-slate-700 font-medium">FOC Qty (အရေအတွက်):</span>
+                      <div className="flex items-center space-x-1.5 bg-white border border-emerald-300 px-2 py-0.5 rounded-lg shadow-xs">
                         <button
                           type="button"
                           onClick={() => {
                             const cur = Math.max(1, parseInt(itemModalFOCQuantityStr) || 1);
                             setItemModalFOCQuantityStr(String(Math.max(1, cur - 1)));
                           }}
-                          className="text-slate-400 hover:text-white p-0.5"
+                          className="text-slate-500 hover:text-slate-900 p-0.5"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
@@ -972,7 +972,7 @@ export const POSView: React.FC = () => {
                           onKeyDown={(e) => {
                             if (e.key === "Enter") handleConfirmAddToCart();
                           }}
-                          className="w-12 bg-transparent text-center text-xs font-bold font-mono text-emerald-300 focus:outline-none"
+                          className="w-12 bg-transparent text-center text-xs font-bold font-mono text-emerald-800 focus:outline-none"
                           placeholder="1"
                         />
                         <button
@@ -981,7 +981,7 @@ export const POSView: React.FC = () => {
                             const cur = Math.max(1, parseInt(itemModalFOCQuantityStr) || 1);
                             setItemModalFOCQuantityStr(String(cur + 1));
                           }}
-                          className="text-slate-400 hover:text-white p-0.5"
+                          className="text-slate-500 hover:text-slate-900 p-0.5"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
@@ -997,8 +997,8 @@ export const POSView: React.FC = () => {
                           onClick={() => setItemModalFOCQuantityStr(String(num))}
                           className={`flex-1 py-0.5 rounded text-[10px] font-bold border transition-colors ${
                             itemModalFOCQuantityStr === String(num)
-                              ? "bg-emerald-600 text-white border-emerald-500"
-                              : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
+                              ? "bg-emerald-600 text-white border-emerald-600"
+                              : "bg-white text-slate-600 border-slate-200 hover:text-slate-900"
                           }`}
                         >
                           {num}
@@ -1006,7 +1006,7 @@ export const POSView: React.FC = () => {
                       ))}
                     </div>
 
-                    <div className="p-2 bg-emerald-950/60 rounded-lg text-[11px] text-emerald-300 font-medium border border-emerald-800/40">
+                    <div className="p-2 bg-emerald-100/70 rounded-lg text-[11px] text-emerald-900 font-medium border border-emerald-200">
                       ✓ Cart တွင် Amount = <strong>0 Ks (Free)</strong> ဖြင့် စာရင်းဝင်ပါမည်။
                     </div>
                   </div>
@@ -1017,8 +1017,8 @@ export const POSView: React.FC = () => {
               <div
                 className={`p-3 rounded-xl border transition-all ${
                   itemModalIsDiscount
-                    ? "bg-amber-950/30 border-amber-500/60 ring-1 ring-amber-500/30"
-                    : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
+                    ? "bg-amber-50 border-amber-300 ring-1 ring-amber-300"
+                    : "bg-slate-50 border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -1033,27 +1033,27 @@ export const POSView: React.FC = () => {
                           setItemModalIsFOC(false);
                         }
                       }}
-                      className="w-4 h-4 rounded text-amber-600 bg-slate-900 border-slate-700 focus:ring-amber-500"
+                      className="w-4 h-4 rounded text-amber-600 bg-white border-slate-300 focus:ring-amber-500"
                     />
-                    <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
-                      <Percent className="w-3.5 h-3.5" />
+                    <span className="text-xs font-bold text-amber-800 flex items-center gap-1">
+                      <Percent className="w-3.5 h-3.5 text-amber-600" />
                       <span>Discount % (လျှော့ဈေး ရာခိုင်နှုန်း)</span>
                     </span>
                   </label>
                 </div>
 
                 {itemModalIsDiscount && (
-                  <div className="mt-2.5 pt-2.5 border-t border-amber-900/40 space-y-2 animate-fade-in">
+                  <div className="mt-2.5 pt-2.5 border-t border-amber-200 space-y-2 animate-fade-in">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-300 font-medium">Dis % (ရာခိုင်နှုန်း ရိုက်ထည့်ပါ):</span>
-                      <div className="flex items-center space-x-1 bg-slate-900 border border-amber-800/60 px-2 py-0.5 rounded-lg">
+                      <span className="text-slate-700 font-medium">Dis % (ရာခိုင်နှုန်း ရိုက်ထည့်ပါ):</span>
+                      <div className="flex items-center space-x-1 bg-white border border-amber-300 px-2 py-0.5 rounded-lg shadow-xs">
                         <button
                           type="button"
                           onClick={() => {
                             const cur = Math.max(0, parseFloat(itemModalDiscountPercentStr) || 0);
                             setItemModalDiscountPercentStr(String(Math.max(0, cur - 1)));
                           }}
-                          className="text-slate-400 hover:text-white p-0.5"
+                          className="text-slate-500 hover:text-slate-900 p-0.5"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
@@ -1069,17 +1069,17 @@ export const POSView: React.FC = () => {
                           onKeyDown={(e) => {
                             if (e.key === "Enter") handleConfirmAddToCart();
                           }}
-                          className="w-14 bg-transparent text-center text-xs font-bold font-mono text-amber-300 focus:outline-none"
+                          className="w-14 bg-transparent text-center text-xs font-bold font-mono text-amber-800 focus:outline-none"
                           placeholder="10"
                         />
-                        <span className="text-amber-400 text-xs font-bold">%</span>
+                        <span className="text-amber-700 text-xs font-bold">%</span>
                         <button
                           type="button"
                           onClick={() => {
                             const cur = Math.max(0, parseFloat(itemModalDiscountPercentStr) || 0);
                             setItemModalDiscountPercentStr(String(Math.min(100, cur + 1)));
                           }}
-                          className="text-slate-400 hover:text-white p-0.5"
+                          className="text-slate-500 hover:text-slate-900 p-0.5"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
@@ -1095,8 +1095,8 @@ export const POSView: React.FC = () => {
                           onClick={() => setItemModalDiscountPercentStr(String(pct))}
                           className={`flex-1 py-1 rounded text-[10px] font-bold border transition-colors ${
                             itemModalDiscountPercentStr === String(pct)
-                              ? "bg-amber-600 text-white border-amber-500"
-                              : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
+                              ? "bg-amber-600 text-white border-amber-600"
+                              : "bg-white text-slate-600 border-slate-200 hover:text-slate-900"
                           }`}
                         >
                           {pct}%
@@ -1110,19 +1110,19 @@ export const POSView: React.FC = () => {
 
             {/* Standard Quantity Selector (Only if not FOC) */}
             {!itemModalIsFOC && (
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-medium">
+                  <span className="text-slate-700 font-medium">
                     {language === "my" ? "ရောင်းချမည့် အရေအတွက် (Qty ရိုက်ထည့်ပါ):" : "Sale Quantity (Enter Qty):"}
                   </span>
-                  <div className="flex items-center space-x-1.5 bg-slate-900 border border-slate-700 px-2 py-0.5 rounded-lg">
+                  <div className="flex items-center space-x-1.5 bg-white border border-slate-300 px-2 py-0.5 rounded-lg shadow-xs">
                     <button
                       type="button"
                       onClick={() => {
                         const cur = Math.max(1, parseInt(itemModalQuantityStr) || 1);
                         setItemModalQuantityStr(String(Math.max(1, cur - 1)));
                       }}
-                      className="text-slate-400 hover:text-white p-0.5"
+                      className="text-slate-500 hover:text-slate-900 p-0.5"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
@@ -1135,7 +1135,7 @@ export const POSView: React.FC = () => {
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleConfirmAddToCart();
                       }}
-                      className="w-14 bg-transparent text-center font-bold text-slate-100 font-mono text-xs focus:outline-none"
+                      className="w-14 bg-transparent text-center font-bold text-slate-900 font-mono text-xs focus:outline-none"
                       placeholder="1"
                     />
                     <button
@@ -1144,7 +1144,7 @@ export const POSView: React.FC = () => {
                         const cur = Math.max(1, parseInt(itemModalQuantityStr) || 1);
                         setItemModalQuantityStr(String(cur + 1));
                       }}
-                      className="text-slate-400 hover:text-white p-0.5"
+                      className="text-slate-500 hover:text-slate-900 p-0.5"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
@@ -1160,8 +1160,8 @@ export const POSView: React.FC = () => {
                       onClick={() => setItemModalQuantityStr(String(q))}
                       className={`flex-1 py-1 rounded-lg text-[10px] font-bold border transition-colors ${
                         itemModalQuantityStr === String(q)
-                          ? "bg-indigo-600 text-white border-indigo-500"
-                          : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
+                          ? "bg-emerald-600 text-white border-emerald-600"
+                          : "bg-white text-slate-600 border-slate-200 hover:text-slate-900"
                       }`}
                     >
                       {q}
@@ -1183,37 +1183,37 @@ export const POSView: React.FC = () => {
               const isDynamicModified = dynamicCalculation.appliedRule !== null;
 
               return (
-                <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 text-xs space-y-1.5">
-                  <div className="flex justify-between text-slate-400">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                  <div className="flex justify-between text-slate-600">
                     <span>မူရင်းရောင်းဈေး:</span>
-                    <span className="font-mono">
+                    <span className="font-mono font-semibold text-slate-800">
                       {formatCurrency(selectedProductForModal.sellingPrice, currency, language)} each
                     </span>
                   </div>
 
                   {/* Dynamic Pricing Notification */}
                   {!itemModalIsFOC && !itemModalIsDiscount && isDynamicModified && (
-                    <div className="p-2 bg-indigo-950/50 border border-indigo-500/40 rounded-lg flex items-center justify-between text-[11px] text-indigo-300">
+                    <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between text-[11px] text-emerald-800">
                       <span className="flex items-center gap-1 font-semibold">
-                        <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                         <span>Dynamic Rule: {dynamicCalculation.appliedRule}</span>
                       </span>
-                      <span className="font-mono font-bold text-emerald-400">
+                      <span className="font-mono font-bold text-emerald-700">
                         {formatCurrency(dynamicCalculation.unitPrice, currency, language)} / unit
                       </span>
                     </div>
                   )}
 
                   {itemModalIsFOC ? (
-                    <div className="flex justify-between text-emerald-400 font-bold pt-1 border-t border-slate-800">
+                    <div className="flex justify-between text-emerald-700 font-bold pt-1 border-t border-slate-200">
                       <span>ကျသင့်ငွေ (FOC Free):</span>
                       <span className="font-mono">0 Ks</span>
                     </div>
                   ) : itemModalIsDiscount && modalDiscount > 0 ? (
                     <>
-                      <div className="flex justify-between text-amber-400">
+                      <div className="flex justify-between text-amber-700 font-medium">
                         <span>လျှော့ဈေး (-{modalDiscount}%):</span>
-                        <span className="font-mono">
+                        <span className="font-mono font-bold">
                           -
                           {formatCurrency(
                             ((selectedProductForModal.sellingPrice * modalDiscount) / 100) * modalQty,
@@ -1222,9 +1222,9 @@ export const POSView: React.FC = () => {
                           )}
                         </span>
                       </div>
-                      <div className="flex justify-between text-slate-100 font-bold pt-1 border-t border-slate-800">
+                      <div className="flex justify-between text-slate-900 font-bold pt-1 border-t border-slate-200">
                         <span>စုစုပေါင်း ကျသင့်ငွေ:</span>
-                        <span className="font-mono text-emerald-400">
+                        <span className="font-mono text-emerald-700">
                           {formatCurrency(
                             (selectedProductForModal.sellingPrice -
                               (selectedProductForModal.sellingPrice * modalDiscount) / 100) *
@@ -1236,9 +1236,9 @@ export const POSView: React.FC = () => {
                       </div>
                     </>
                   ) : (
-                    <div className="flex justify-between text-slate-100 font-bold pt-1 border-t border-slate-800">
+                    <div className="flex justify-between text-slate-900 font-bold pt-1 border-t border-slate-200">
                       <span>စုစုပေါင်း ကျသင့်ငွေ:</span>
-                      <span className="font-mono text-emerald-400">
+                      <span className="font-mono text-emerald-700">
                         {formatCurrency(
                           dynamicCalculation.unitPrice * modalQty,
                           currency,
@@ -1252,18 +1252,18 @@ export const POSView: React.FC = () => {
             })()}
 
             {/* Modal Actions */}
-            <div className="flex justify-end space-x-2 pt-2 border-t border-slate-800">
+            <div className="flex justify-end space-x-2 pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setSelectedProductForModal(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors"
               >
                 {language === "my" ? "ပယ်ဖျက်မည်" : "Cancel"}
               </button>
               <button
                 type="button"
                 onClick={handleConfirmAddToCart}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-md transition-all hover:scale-[1.02]"
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition-all hover:scale-[1.02]"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{language === "my" ? "Cart ထဲသို့ ထည့်မည်" : "Add to Cart"}</span>
@@ -1275,24 +1275,24 @@ export const POSView: React.FC = () => {
 
       {/* In-Cart Quick Edit Modal (FOC / Discount %) */}
       {editingCartIndex !== null && cart[editingCartIndex] && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 text-slate-200 shadow-2xl animate-fade-in">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-2.5">
-              <h3 className="font-bold text-sm text-slate-100 flex items-center gap-1.5">
-                <Edit3 className="w-4 h-4 text-indigo-400" />
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-5 space-y-4 text-slate-800 shadow-2xl animate-fade-in">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2.5">
+              <h3 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                <Edit3 className="w-4 h-4 text-emerald-600" />
                 <span>{language === "my" ? "Cart ပစ္စည်း FOC / Discount % ပြင်ဆင်ခြင်း" : "Edit Cart Line Options"}</span>
               </h3>
-              <button onClick={() => setEditingCartIndex(null)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setEditingCartIndex(null)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="text-xs space-y-3">
-              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                <div className="font-bold text-slate-100">{cart[editingCartIndex].product.name}</div>
-                <div className="text-slate-400 text-[11px] mt-0.5">
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                <div className="font-bold text-slate-900">{cart[editingCartIndex].product.name}</div>
+                <div className="text-slate-500 text-[11px] mt-0.5">
                   မူရင်းရောင်းဈေး:{" "}
-                  <span className="font-mono text-emerald-400">
+                  <span className="font-mono text-emerald-700 font-bold">
                     {formatCurrency(
                       cart[editingCartIndex].originalPrice || cart[editingCartIndex].product.sellingPrice,
                       currency,
@@ -1303,7 +1303,7 @@ export const POSView: React.FC = () => {
               </div>
 
               {/* In-Cart Serial Number Picker */}
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <SerialNumberPicker
                   product={cart[editingCartIndex].product}
                   branchId={currentBranch.id}
@@ -1319,7 +1319,7 @@ export const POSView: React.FC = () => {
               {/* FOC Option */}
               <div
                 className={`p-3 rounded-xl border ${
-                  editCartIsFOC ? "bg-emerald-950/30 border-emerald-500/50" : "bg-slate-950 border-slate-800"
+                  editCartIsFOC ? "bg-emerald-50 border-emerald-300" : "bg-slate-50 border-slate-200"
                 }`}
               >
                 <label className="flex items-center space-x-2 cursor-pointer">
@@ -1331,17 +1331,17 @@ export const POSView: React.FC = () => {
                       setEditCartIsFOC(checked);
                       if (checked) setEditCartIsDiscount(false);
                     }}
-                    className="w-4 h-4 rounded text-emerald-600 bg-slate-900 border-slate-700 focus:ring-emerald-500"
+                    className="w-4 h-4 rounded text-emerald-600 bg-white border-slate-300 focus:ring-emerald-500"
                   />
-                  <span className="font-bold text-emerald-400 flex items-center gap-1">
-                    <Gift className="w-3.5 h-3.5" />
+                  <span className="font-bold text-emerald-800 flex items-center gap-1">
+                    <Gift className="w-3.5 h-3.5 text-emerald-600" />
                     <span>FOC (Free of Charge / အခမဲ့) - 0 Ks</span>
                   </span>
                 </label>
 
                 {editCartIsFOC && (
-                  <div className="mt-2 pt-2 border-t border-emerald-900/40 flex items-center justify-between">
-                    <span className="text-slate-300">FOC Quantity:</span>
+                  <div className="mt-2 pt-2 border-t border-emerald-200 flex items-center justify-between">
+                    <span className="text-slate-700 font-medium">FOC Quantity:</span>
                     <input
                       type="text"
                       inputMode="numeric"
@@ -1351,7 +1351,7 @@ export const POSView: React.FC = () => {
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleSaveCartEdit();
                       }}
-                      className="w-16 bg-slate-900 border border-emerald-700 rounded-lg px-2 py-1 text-center font-mono font-bold text-emerald-300 text-xs"
+                      className="w-16 bg-white border border-emerald-300 rounded-lg px-2 py-1 text-center font-mono font-bold text-emerald-800 text-xs shadow-xs"
                       placeholder="1"
                     />
                   </div>
@@ -1361,7 +1361,7 @@ export const POSView: React.FC = () => {
               {/* Discount % Option */}
               <div
                 className={`p-3 rounded-xl border space-y-2 ${
-                  editCartIsDiscount ? "bg-amber-950/30 border-amber-500/50" : "bg-slate-950 border-slate-800"
+                  editCartIsDiscount ? "bg-amber-50 border-amber-300" : "bg-slate-50 border-slate-200"
                 }`}
               >
                 <label className="flex items-center space-x-2 cursor-pointer">
@@ -1373,10 +1373,10 @@ export const POSView: React.FC = () => {
                       setEditCartIsDiscount(checked);
                       if (checked) setEditCartIsFOC(false);
                     }}
-                    className="w-4 h-4 rounded text-amber-600 bg-slate-900 border-slate-700 focus:ring-amber-500"
+                    className="w-4 h-4 rounded text-amber-600 bg-white border-slate-300 focus:ring-amber-500"
                   />
-                  <span className="font-bold text-amber-400 flex items-center gap-1">
-                    <Percent className="w-3.5 h-3.5" />
+                  <span className="font-bold text-amber-800 flex items-center gap-1">
+                    <Percent className="w-3.5 h-3.5 text-amber-600" />
                     <span>Discount % (ပစ္စည်းသီးသန့် လျှော့ဈေး)</span>
                   </span>
                 </label>
@@ -1384,7 +1384,7 @@ export const POSView: React.FC = () => {
                 {editCartIsDiscount && (
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-300">Discount % (ရိုက်ထည့်ပါ):</span>
+                      <span className="text-slate-700 font-medium">Discount % (ရိုက်ထည့်ပါ):</span>
                       <div className="flex items-center space-x-1">
                         <input
                           type="text"
@@ -1395,10 +1395,10 @@ export const POSView: React.FC = () => {
                           onKeyDown={(e) => {
                             if (e.key === "Enter") handleSaveCartEdit();
                           }}
-                          className="w-16 bg-slate-900 border border-amber-700 rounded-lg px-2 py-1 text-center font-mono font-bold text-amber-300 text-xs"
+                          className="w-16 bg-white border border-amber-300 rounded-lg px-2 py-1 text-center font-mono font-bold text-amber-800 text-xs shadow-xs"
                           placeholder="10"
                         />
-                        <span className="text-amber-400 font-bold">%</span>
+                        <span className="text-amber-700 font-bold">%</span>
                       </div>
                     </div>
 
@@ -1411,8 +1411,8 @@ export const POSView: React.FC = () => {
                           onClick={() => setEditCartDiscountPercentStr(String(pct))}
                           className={`flex-1 py-1 rounded text-[10px] font-bold border transition-colors ${
                             editCartDiscountPercentStr === String(pct)
-                              ? "bg-amber-600 text-white border-amber-500"
-                              : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
+                              ? "bg-amber-600 text-white border-amber-600"
+                              : "bg-white text-slate-600 border-slate-200 hover:text-slate-900"
                           }`}
                         >
                           {pct}%
@@ -1424,16 +1424,16 @@ export const POSView: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2 pt-2 border-t border-slate-800">
+            <div className="flex justify-end space-x-2 pt-2 border-t border-slate-100">
               <button
                 onClick={() => setEditingCartIndex(null)}
-                className="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl text-xs"
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveCartEdit}
-                className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold"
+                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-xs"
               >
                 Save Changes
               </button>
@@ -1444,47 +1444,47 @@ export const POSView: React.FC = () => {
 
       {/* Split Payment Modal */}
       {showPaymentModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 text-slate-200 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 text-slate-800 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <div>
-                <h3 className="font-bold text-sm text-slate-100">Multi-Method Split Payment</h3>
-                <p className="text-[11px] text-slate-400">Total Payable: {formatCurrency(grandTotal, currency, language)}</p>
+                <h3 className="font-bold text-sm text-slate-900">Multi-Method Split Payment</h3>
+                <p className="text-[11px] text-slate-500">Total Payable: <span className="font-bold text-emerald-700">{formatCurrency(grandTotal, currency, language)}</span></p>
               </div>
               <button onClick={() => setShowPaymentModal(false)}>
-                <X className="w-5 h-5 text-slate-400" />
+                <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               {/* Cash Field */}
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
-                <div className="flex justify-between items-center font-semibold text-slate-200">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                <div className="flex justify-between items-center font-semibold text-slate-800">
                   <span className="flex items-center space-x-1.5">
-                    <Banknote className="w-4 h-4 text-emerald-400" />
+                    <Banknote className="w-4 h-4 text-emerald-600" />
                     <span>Cash Payment (Drawer)</span>
                   </span>
                   <input
                     type="number"
                     value={cashAmount}
                     onChange={(e) => setCashAmount(Number(e.target.value))}
-                    className="w-36 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-right text-slate-100 font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-36 bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-right text-slate-900 font-mono focus:outline-none focus:border-emerald-500 font-bold"
                   />
                 </div>
               </div>
 
               {/* KBZPay Field */}
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                <div className="flex justify-between items-center font-semibold text-slate-200">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                <div className="flex justify-between items-center font-semibold text-slate-800">
                   <span className="flex items-center space-x-1.5">
-                    <QrCode className="w-4 h-4 text-blue-400" />
+                    <QrCode className="w-4 h-4 text-blue-600" />
                     <span>KBZPay Merchant QR</span>
                   </span>
                   <input
                     type="number"
                     value={kbzPayAmount}
                     onChange={(e) => setKbzPayAmount(Number(e.target.value))}
-                    className="w-36 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-right text-slate-100 font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-36 bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-right text-slate-900 font-mono focus:outline-none focus:border-emerald-500 font-bold"
                   />
                 </div>
                 {kbzPayAmount > 0 && (
@@ -1493,23 +1493,23 @@ export const POSView: React.FC = () => {
                     placeholder="KBZPay Transaction ID Ref"
                     value={kbzPayRef}
                     onChange={(e) => setKbzPayRef(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-100 font-mono"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-900 font-mono"
                   />
                 )}
               </div>
 
               {/* WavePay Field */}
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                <div className="flex justify-between items-center font-semibold text-slate-200">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                <div className="flex justify-between items-center font-semibold text-slate-800">
                   <span className="flex items-center space-x-1.5">
-                    <QrCode className="w-4 h-4 text-amber-400" />
+                    <QrCode className="w-4 h-4 text-amber-600" />
                     <span>WavePay Merchant QR</span>
                   </span>
                   <input
                     type="number"
                     value={wavePayAmount}
                     onChange={(e) => setWavePayAmount(Number(e.target.value))}
-                    className="w-36 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-right text-slate-100 font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-36 bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-right text-slate-900 font-mono focus:outline-none focus:border-emerald-500 font-bold"
                   />
                 </div>
                 {wavePayAmount > 0 && (
@@ -1518,41 +1518,41 @@ export const POSView: React.FC = () => {
                     placeholder="WavePay Transaction ID Ref"
                     value={wavePayRef}
                     onChange={(e) => setWavePayRef(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-100 font-mono"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-900 font-mono"
                   />
                 )}
               </div>
 
               {/* Credit Card Field */}
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
-                <div className="flex justify-between items-center font-semibold text-slate-200">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                <div className="flex justify-between items-center font-semibold text-slate-800">
                   <span className="flex items-center space-x-1.5">
-                    <CreditCard className="w-4 h-4 text-purple-400" />
+                    <CreditCard className="w-4 h-4 text-purple-600" />
                     <span>Credit / Debit Card (MPU/Visa)</span>
                   </span>
                   <input
                     type="number"
                     value={cardAmount}
                     onChange={(e) => setCardAmount(Number(e.target.value))}
-                    className="w-36 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-right text-slate-100 font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-36 bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-right text-slate-900 font-mono focus:outline-none focus:border-emerald-500 font-bold"
                   />
                 </div>
               </div>
 
               {/* Balance & Change Reconciliation */}
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1 font-mono text-xs">
-                <div className="flex justify-between text-slate-400">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 font-mono text-xs">
+                <div className="flex justify-between text-slate-600">
                   <span>Total Tendered:</span>
-                  <span className="font-bold text-slate-200">{formatCurrency(totalPaid, currency, language)}</span>
+                  <span className="font-bold text-slate-900">{formatCurrency(totalPaid, currency, language)}</span>
                 </div>
-                <div className="flex justify-between text-slate-400">
+                <div className="flex justify-between text-slate-600">
                   <span>Balance Due:</span>
-                  <span className={`font-bold ${balanceDue > 0 ? "text-rose-400" : "text-emerald-400"}`}>
+                  <span className={`font-bold ${balanceDue > 0 ? "text-rose-600" : "text-emerald-700"}`}>
                     {formatCurrency(balanceDue, currency, language)}
                   </span>
                 </div>
                 {changeDue > 0 && (
-                  <div className="flex justify-between text-emerald-400 font-bold border-t border-slate-800 pt-1">
+                  <div className="flex justify-between text-emerald-700 font-bold border-t border-slate-200 pt-1">
                     <span>Change to Return:</span>
                     <span>{formatCurrency(changeDue, currency, language)}</span>
                   </div>
@@ -1560,10 +1560,10 @@ export const POSView: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+            <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
               <button
                 onClick={() => setShowPaymentModal(false)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-medium text-xs"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium text-xs transition-colors"
               >
                 Cancel
               </button>
@@ -1571,7 +1571,7 @@ export const POSView: React.FC = () => {
                 id="confirm-checkout-btn"
                 disabled={totalPaid < grandTotal}
                 onClick={handleFinishCheckout}
-                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white rounded-xl font-bold text-xs shadow-md"
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white rounded-xl font-bold text-xs shadow-sm transition-all"
               >
                 Confirm & Print Thermal Receipt
               </button>
@@ -1582,12 +1582,12 @@ export const POSView: React.FC = () => {
 
       {/* Customer Lookup & Assignment Modal */}
       {showCustomerModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 text-slate-200 shadow-2xl space-y-3">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-              <h3 className="font-bold text-sm text-slate-100">Select Customer for Loyalty Points</h3>
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-5 text-slate-800 shadow-2xl space-y-3">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+              <h3 className="font-bold text-sm text-slate-900">Select Customer for Loyalty Points</h3>
               <button onClick={() => setShowCustomerModal(false)}>
-                <X className="w-4 h-4 text-slate-400" />
+                <X className="w-4 h-4 text-slate-400 hover:text-slate-600" />
               </button>
             </div>
 
@@ -1599,14 +1599,14 @@ export const POSView: React.FC = () => {
                     setActiveCustomer(c);
                     setShowCustomerModal(false);
                   }}
-                  className="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 cursor-pointer flex justify-between items-center"
+                  className="p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 cursor-pointer flex justify-between items-center transition-colors"
                 >
                   <div>
-                    <div className="font-bold text-slate-200">{c.name}</div>
-                    <div className="text-[10px] text-slate-400">{c.phone} • {c.membershipTier} Member</div>
+                    <div className="font-bold text-slate-900">{c.name}</div>
+                    <div className="text-[10px] text-slate-500">{c.phone} • {c.membershipTier} Member</div>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-mono font-bold">
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-mono font-bold">
                       {c.loyaltyPoints} pts
                     </span>
                   </div>
@@ -1619,27 +1619,27 @@ export const POSView: React.FC = () => {
 
       {/* Parked Tickets Modal */}
       {showParkedModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 text-slate-200 shadow-2xl space-y-3">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-              <h3 className="font-bold text-sm text-slate-100">Held / Parked Tickets</h3>
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-5 text-slate-800 shadow-2xl space-y-3">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+              <h3 className="font-bold text-sm text-slate-900">Held / Parked Tickets</h3>
               <button onClick={() => setShowParkedModal(false)}>
-                <X className="w-4 h-4 text-slate-400" />
+                <X className="w-4 h-4 text-slate-400 hover:text-slate-600" />
               </button>
             </div>
 
             {parkedTickets.length === 0 ? (
-              <p className="text-xs text-slate-500 py-6 text-center">No held orders found.</p>
+              <p className="text-xs text-slate-400 py-6 text-center">No held orders found.</p>
             ) : (
               <div className="space-y-2 text-xs">
                 {parkedTickets.map((ticket) => (
                   <div
                     key={ticket.id}
-                    className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center"
+                    className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center"
                   >
                     <div>
-                      <div className="font-bold text-slate-200">{ticket.ticketName}</div>
-                      <div className="text-[10px] text-slate-400">{ticket.items.length} items lines</div>
+                      <div className="font-bold text-slate-900">{ticket.ticketName}</div>
+                      <div className="text-[10px] text-slate-500">{ticket.items.length} items lines</div>
                     </div>
                     <div className="flex items-center space-x-1.5">
                       <button
@@ -1647,13 +1647,13 @@ export const POSView: React.FC = () => {
                           restoreParkedCart(ticket.id);
                           setShowParkedModal(false);
                         }}
-                        className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold"
+                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-semibold"
                       >
                         Recall
                       </button>
                       <button
                         onClick={() => deleteParkedTicket(ticket.id)}
-                        className="p-1 text-slate-400 hover:text-rose-400"
+                        className="p-1 text-slate-400 hover:text-rose-600"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -1668,28 +1668,28 @@ export const POSView: React.FC = () => {
 
       {/* Returns & Refund Modal */}
       {showReturnsModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 text-slate-200 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-sm text-slate-100 flex items-center space-x-2">
-                <RotateCcw className="w-4 h-4 text-rose-400" />
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 text-slate-800 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-sm text-slate-900 flex items-center space-x-2">
+                <RotateCcw className="w-4 h-4 text-rose-600" />
                 <span>Process Sale Return & Restock</span>
               </h3>
               <button onClick={() => setShowReturnsModal(false)}>
-                <X className="w-5 h-5 text-slate-400" />
+                <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1">Select Sale Invoice</label>
+                <label className="block text-slate-600 mb-1 font-medium">Select Sale Invoice</label>
                 <select
                   value={returnOrderId}
                   onChange={(e) => {
                     setReturnOrderId(e.target.value);
                     setReturnItemSelection({});
                   }}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 font-medium"
                 >
                   <option value="">-- Choose Completed Invoice --</option>
                   {orders
@@ -1703,13 +1703,13 @@ export const POSView: React.FC = () => {
               </div>
 
               {returnOrderId && (
-                <div className="space-y-2 bg-slate-950 p-3 rounded-xl border border-slate-800">
-                  <div className="font-bold text-slate-200 mb-1">Select Items to Return:</div>
+                <div className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <div className="font-bold text-slate-900 mb-1">Select Items to Return:</div>
                   {orders
                     .find((o) => o.id === returnOrderId)
                     ?.items.map((item) => (
                       <div key={item.product.id} className="flex items-center justify-between">
-                        <span className="truncate pr-2">
+                        <span className="truncate pr-2 text-slate-800 font-medium">
                           {item.product.name} (Max {item.quantity})
                         </span>
                         <input
@@ -1723,7 +1723,7 @@ export const POSView: React.FC = () => {
                               [item.product.id]: Number(e.target.value),
                             })
                           }
-                          className="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-center text-slate-100 font-mono"
+                          className="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-center text-slate-900 font-mono font-bold"
                         />
                       </div>
                     ))}
@@ -1731,11 +1731,11 @@ export const POSView: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-slate-400 mb-1">Return Reason</label>
+                <label className="block text-slate-600 mb-1 font-medium">Return Reason</label>
                 <select
                   value={returnReason}
                   onChange={(e) => setReturnReason(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500"
                 >
                   <option value="Customer Change of Mind">Customer Change of Mind</option>
                   <option value="Defective Hardware (Sent to RMA)">Defective Hardware (Sent to RMA)</option>
@@ -1744,16 +1744,16 @@ export const POSView: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+            <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
               <button
                 onClick={() => setShowReturnsModal(false)}
-                className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-medium"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={handleExecuteReturn}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-semibold shadow-md"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-semibold shadow-xs"
               >
                 Process Refund & Restock
               </button>
@@ -1764,19 +1764,19 @@ export const POSView: React.FC = () => {
 
       {/* Global Serial Number & Barcode Inventory Modal */}
       {showSNFinderModal && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full p-5 space-y-4 text-slate-200 shadow-2xl animate-fade-in max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full p-5 space-y-4 text-slate-800 shadow-2xl animate-fade-in max-h-[90vh] flex flex-col">
             {/* Header */}
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2.5">
-                <div className="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-indigo-400">
+                <div className="p-2 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-600">
                   <Filter className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-slate-100">
+                  <h3 className="font-bold text-sm text-slate-900">
                     {language === "my" ? "Serial Number / Expired ပစ္စည်းလက်ကျန် စစ်ဆေးရွေးချယ်ခြင်း" : "Serial Number / Expired & Stock Explorer"}
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     {language === "my"
                       ? `ဆိုင်ခွဲ: ${currentBranch.name} တွင်ရှိသော Serial Number နှင့် လက်ကျန်စာရင်းများ`
                       : `Active Branch: ${currentBranch.name} • Filter available serials & current stock`}
@@ -1788,7 +1788,7 @@ export const POSView: React.FC = () => {
                   setShowSNFinderModal(false);
                   setSnFinderQuery("");
                 }}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1807,12 +1807,12 @@ export const POSView: React.FC = () => {
                     ? "Serial Number (SN), Barcode, SKU သို့မဟုတ် ပစ္စည်းအမည်ဖြင့် ရှာဖွေပါ..."
                     : "Search by Serial Number (SN), Barcode, SKU, or Product Name..."
                 }
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 font-mono"
               />
               {snFinderQuery && (
                 <button
                   onClick={() => setSnFinderQuery("")}
-                  className="absolute right-3 top-2.5 text-slate-400 hover:text-white"
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1860,12 +1860,12 @@ export const POSView: React.FC = () => {
 
                 if (filtered.length === 0) {
                   return (
-                    <div className="text-center py-12 text-slate-500 text-xs">
-                      <Boxes className="w-10 h-10 mx-auto mb-2 opacity-30 text-indigo-400" />
-                      <p className="font-semibold text-slate-400">
+                    <div className="text-center py-12 text-slate-400 text-xs">
+                      <Boxes className="w-10 h-10 mx-auto mb-2 opacity-30 text-emerald-600" />
+                      <p className="font-semibold text-slate-600">
                         {language === "my" ? "ကိုက်ညီသော Serial Number မတွေ့ရှိပါ" : "No matching serial numbers found"}
                       </p>
-                      <p className="text-[11px] text-slate-600 mt-1">
+                      <p className="text-[11px] text-slate-400 mt-1">
                         {language === "my"
                           ? "အခြားစကားလုံး သို့မဟုတ် SN Code ဖြင့် ပြန်လည်ရှာဖွေကြည့်ပါ"
                           : "Try searching with a different SN code or keyword"}
@@ -1883,53 +1883,53 @@ export const POSView: React.FC = () => {
                           key={`${item.product.id}-${item.snCode}-${idx}`}
                           className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${
                             isOutOfStock
-                              ? "bg-slate-950/40 border-slate-800/60 opacity-60"
-                              : "bg-slate-950/80 border-slate-800 hover:border-indigo-500/50 hover:bg-slate-950"
+                              ? "bg-slate-50 border-slate-200 opacity-60"
+                              : "bg-white border-slate-200 hover:border-emerald-500 hover:shadow-sm"
                           }`}
                         >
                           <div>
                             {/* Product Title & Category */}
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">
-                                <h4 className="font-semibold text-xs text-slate-100 truncate">
+                                <h4 className="font-semibold text-xs text-slate-900 truncate">
                                   {item.product.name}
                                 </h4>
-                                <div className="text-[10px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                                <div className="text-[10px] text-slate-500 flex items-center gap-1.5 mt-0.5">
                                   <span className="font-mono text-slate-500">{item.product.sku}</span>
                                   <span>•</span>
-                                  <span className="text-slate-400">{item.product.category}</span>
+                                  <span className="text-slate-500">{item.product.category}</span>
                                 </div>
                               </div>
 
                               {/* Price */}
-                              <span className="font-mono font-bold text-xs text-emerald-400 shrink-0">
+                              <span className="font-mono font-bold text-xs text-emerald-700 shrink-0">
                                 {formatCurrency(item.product.sellingPrice, currency, language)}
                               </span>
                             </div>
 
                             {/* SN Highlight Card */}
-                            <div className="mt-2 p-2 rounded-lg bg-indigo-950/30 border border-indigo-900/40 space-y-1">
+                            <div className="mt-2 p-2 rounded-lg bg-emerald-50/70 border border-emerald-200 space-y-1">
                               <div className="flex items-center justify-between">
-                                <span className="text-[10px] text-indigo-300 font-semibold flex items-center gap-1">
-                                  <ShieldCheck className="w-3 h-3 text-indigo-400" />
+                                <span className="text-[10px] text-emerald-800 font-semibold flex items-center gap-1">
+                                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
                                   <span>SN Code:</span>
                                 </span>
-                                <span className="text-xs font-mono font-bold text-indigo-200">
+                                <span className="text-xs font-mono font-bold text-emerald-950">
                                   {item.snCode}
                                 </span>
                               </div>
 
                               {/* Stock Qty & Location */}
-                              <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-indigo-900/30">
+                              <div className="flex items-center justify-between text-[10px] text-slate-600 pt-1 border-t border-emerald-100">
                                 <div className="flex items-center gap-1">
                                   <span>{language === "my" ? "လက်ကျန်:" : "Stock:"}</span>
                                   <span
                                     className={`font-mono font-bold px-1.5 py-0.2 rounded text-[10px] ${
                                       item.stockQty > 5
-                                        ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                                        ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                                         : item.stockQty > 0
-                                        ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
-                                        : "bg-rose-500/15 text-rose-300 border border-rose-500/30"
+                                        ? "bg-amber-100 text-amber-800 border border-amber-200"
+                                        : "bg-rose-100 text-rose-800 border border-rose-200"
                                     }`}
                                   >
                                     {item.stockQty} {language === "my" ? "ခု" : "units"}
@@ -1937,7 +1937,7 @@ export const POSView: React.FC = () => {
                                 </div>
 
                                 {item.location && (
-                                  <span className="text-slate-400 font-mono">
+                                  <span className="text-slate-500 font-mono">
                                     Bin: {item.location}
                                   </span>
                                 )}
@@ -1946,7 +1946,7 @@ export const POSView: React.FC = () => {
                           </div>
 
                           {/* Action Button: Add to Cart with SN */}
-                          <div className="mt-3 pt-2 border-t border-slate-900/80 flex items-center justify-end">
+                          <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-end">
                             <button
                               type="button"
                               disabled={isOutOfStock}
@@ -1955,7 +1955,7 @@ export const POSView: React.FC = () => {
                                 setShowSNFinderModal(false);
                                 setSnFinderQuery("");
                               }}
-                              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-indigo-950/40 transition-all"
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all"
                             >
                               <Plus className="w-3.5 h-3.5" />
                               <span>{language === "my" ? "Cart သို့ ထည့်မည် (ဒီ SN ဖြင့်)" : "Add to Cart (with SN)"}</span>
@@ -1970,8 +1970,8 @@ export const POSView: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-              <span className="text-[11px] text-slate-500">
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span className="text-[11px] text-slate-400">
                 {language === "my"
                   ? "Serial Number ရွေးချယ်ပြီးပါက Cart သို့ တိုက်ရိုက်ထည့်သွင်းပေးပါမည်"
                   : "Selecting a Serial Number adds it directly to the active Cart"}
@@ -1981,7 +1981,7 @@ export const POSView: React.FC = () => {
                   setShowSNFinderModal(false);
                   setSnFinderQuery("");
                 }}
-                className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-medium transition-colors"
+                className="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium transition-colors"
               >
                 {language === "my" ? "ပိတ်မည်" : "Close"}
               </button>

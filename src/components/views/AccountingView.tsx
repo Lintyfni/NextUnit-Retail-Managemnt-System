@@ -1,52 +1,34 @@
 import React, { useState } from "react";
 import { useApp } from "../../context/AppContext";
-import { formatCurrency, formatDate, DICTIONARY } from "../../utils/helpers";
-import { Account, FinancialVoucher } from "../../types";
-import {
-  Calculator,
-  Plus,
-  ArrowUpRight,
-  ArrowDownLeft,
-  FileText,
-  DollarSign,
-  PieChart,
-  CheckCircle2,
-  X,
-  Building,
-} from "lucide-react";
+import { formatCurrency } from "../../utils/helpers";
+import { FinancialVoucher } from "../../types";
+import { Calculator, Plus, X } from "lucide-react";
 
 export const AccountingView: React.FC = () => {
-  const { chartOfAccounts, vouchers, currency, language, createVoucher, branches } = useApp();
-  const t = DICTIONARY[language];
+  const { vouchers, chartOfAccounts, branches, currency, language, createVoucher } = useApp();
 
-  const [activeTab, setActiveTab] = useState<"COA" | "VOUCHERS" | "PL">("VOUCHERS");
+  const [activeTab, setActiveTab] = useState<"VOUCHERS" | "COA" | "PL">("VOUCHERS");
   const [showVoucherModal, setShowVoucherModal] = useState(false);
 
-  // New Voucher State
-  const [newVoucher, setNewVoucher] = useState<{
-    type: "CPV" | "CRV" | "BPV" | "BRV" | "JV";
-    debitAccount: string;
-    creditAccount: string;
-    amount: number;
-    description: string;
-  }>({
-    type: "CPV",
-    debitAccount: "5000", // Store Rent
-    creditAccount: "1000", // Cash on Hand
-    amount: 1500000,
-    description: "Monthly retail store rental expense payment",
+  // New Voucher Form
+  const [newVoucher, setNewVoucher] = useState({
+    type: "CPV" as FinancialVoucher["type"],
+    debitAccount: "5000",
+    creditAccount: "1010",
+    amount: 150000,
+    description: "",
   });
 
   const totalAssets = chartOfAccounts
     .filter((a) => a.category === "ASSET")
     .reduce((acc, a) => acc + a.balance, 0);
 
-  const totalRevenue = chartOfAccounts
-    .filter((a) => a.category === "REVENUE")
-    .reduce((acc, a) => acc + a.balance, 0);
-
   const totalExpenses = chartOfAccounts
     .filter((a) => a.category === "EXPENSE")
+    .reduce((acc, a) => acc + a.balance, 0);
+
+  const totalRevenue = chartOfAccounts
+    .filter((a) => a.category === "REVENUE")
     .reduce((acc, a) => acc + a.balance, 0);
 
   const netOperatingProfit = totalRevenue - totalExpenses;
@@ -57,8 +39,8 @@ export const AccountingView: React.FC = () => {
 
     createVoucher({
       type: newVoucher.type,
-      branchId: branches[0].id,
-      branchName: branches[0].name,
+      branchId: branches[0]?.id || "BRANCH-001",
+      branchName: branches[0]?.name || "Main Branch",
       amount: Number(newVoucher.amount),
       currency: "MMK",
       debitAccountId: newVoucher.debitAccount,
@@ -67,33 +49,32 @@ export const AccountingView: React.FC = () => {
     });
 
     setShowVoucherModal(false);
-    alert("Financial voucher posted and ledger updated.");
   };
 
   return (
-    <div id="accounting-finance-view" className="space-y-5 animate-fade-in">
+    <div id="accounting-finance-view" className="space-y-5 animate-fade-in text-slate-800">
       {/* Top Header & Financial KPI Summary */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+      <div className="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200">
             <Calculator className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-slate-100">
+            <h1 className="text-base font-bold text-slate-900">
               {language === "my" ? "ငွေစာရင်း၊ ဘောက်ချာများနှင့် ဘဏ္ဍာရေး အစီရင်ခံစာ" : "Enterprise Accounting, Vouchers & Real-time P&L"}
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500">
               Double-Entry General Ledger • Cash Flow • CPV / CRV / Journal Entries
             </p>
           </div>
         </div>
 
         <div className="flex items-center space-x-2">
-          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs font-semibold">
+          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold">
             <button
               onClick={() => setActiveTab("VOUCHERS")}
               className={`px-3 py-1.5 rounded-lg transition-colors ${
-                activeTab === "VOUCHERS" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-slate-200"
+                activeTab === "VOUCHERS" ? "bg-emerald-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Vouchers ({vouchers.length})
@@ -101,7 +82,7 @@ export const AccountingView: React.FC = () => {
             <button
               onClick={() => setActiveTab("COA")}
               className={`px-3 py-1.5 rounded-lg transition-colors ${
-                activeTab === "COA" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-slate-200"
+                activeTab === "COA" ? "bg-emerald-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Chart of Accounts
@@ -109,7 +90,7 @@ export const AccountingView: React.FC = () => {
             <button
               onClick={() => setActiveTab("PL")}
               className={`px-3 py-1.5 rounded-lg transition-colors ${
-                activeTab === "PL" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-slate-200"
+                activeTab === "PL" ? "bg-emerald-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
               }`}
             >
               P&L Income Statement
@@ -118,7 +99,7 @@ export const AccountingView: React.FC = () => {
 
           <button
             onClick={() => setShowVoucherModal(true)}
-            className="flex items-center space-x-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-sm transition-colors"
+            className="flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-all hover:scale-[1.02]"
           >
             <Plus className="w-4 h-4" />
             <span>Post Voucher</span>
@@ -128,37 +109,37 @@ export const AccountingView: React.FC = () => {
 
       {/* 3 Executive Finance Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
-          <span className="text-xs font-medium text-slate-400">Total Liquid Assets & Bank</span>
-          <div className="text-lg font-bold text-slate-100 font-mono mt-1">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+          <span className="text-xs font-medium text-slate-500">Total Liquid Assets & Bank</span>
+          <div className="text-lg font-bold text-slate-900 font-mono mt-1">
             {formatCurrency(totalAssets, currency, language)}
           </div>
-          <div className="text-[11px] text-emerald-400 mt-1">Cash In Hand + KBZ Bank + AYA Bank</div>
+          <div className="text-[11px] text-emerald-700 font-medium mt-1">Cash In Hand + KBZ Bank + AYA Bank</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
-          <span className="text-xs font-medium text-slate-400">Operating Expenses (MTD)</span>
-          <div className="text-lg font-bold text-rose-400 font-mono mt-1">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+          <span className="text-xs font-medium text-slate-500">Operating Expenses (MTD)</span>
+          <div className="text-lg font-bold text-rose-600 font-mono mt-1">
             {formatCurrency(totalExpenses, currency, language)}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Rent, Utilities, Wages, Commercial Tax</div>
+          <div className="text-[11px] text-slate-500 mt-1">Rent, Utilities, Wages, Commercial Tax</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
-          <span className="text-xs font-medium text-slate-400">Net Operating Profit</span>
-          <div className="text-lg font-bold text-emerald-400 font-mono mt-1">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+          <span className="text-xs font-medium text-slate-500">Net Operating Profit</span>
+          <div className="text-lg font-bold text-emerald-700 font-mono mt-1">
             {formatCurrency(netOperatingProfit, currency, language)}
           </div>
-          <div className="text-[11px] text-emerald-300 mt-1">Real-time Margin: +24.8%</div>
+          <div className="text-[11px] text-emerald-800 font-medium mt-1">Real-time Margin: +24.8%</div>
         </div>
       </div>
 
       {/* Tab 1: Vouchers Table */}
       {activeTab === "VOUCHERS" && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <table className="w-full text-left text-xs text-slate-700">
+              <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200 font-semibold">
                 <tr>
                   <th className="px-4 py-3">Voucher No</th>
                   <th className="px-4 py-3">Type</th>
@@ -169,25 +150,25 @@ export const AccountingView: React.FC = () => {
                   <th className="px-4 py-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-medium">
+              <tbody className="divide-y divide-slate-100 font-medium">
                 {vouchers.map((v) => (
-                  <tr key={v.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="px-4 py-3 font-mono font-bold text-slate-100">{v.voucherNumber}</td>
+                  <tr key={v.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-3 font-mono font-bold text-slate-900">{v.voucherNumber}</td>
                     <td className="px-4 py-3">
-                      <span className="font-mono font-bold text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                      <span className="font-mono font-bold text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                         {v.type}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-400">{v.branchName}</td>
-                    <td className="px-4 py-3 text-slate-200">{v.description}</td>
-                    <td className="px-4 py-3 font-mono text-[11px] text-slate-400">
+                    <td className="px-4 py-3 text-slate-600">{v.branchName}</td>
+                    <td className="px-4 py-3 text-slate-900">{v.description}</td>
+                    <td className="px-4 py-3 font-mono text-[11px] text-slate-500">
                       Dr: {v.debitAccountId} / Cr: {v.creditAccountId}
                     </td>
-                    <td className="px-4 py-3 font-mono font-bold text-emerald-400">
+                    <td className="px-4 py-3 font-mono font-bold text-emerald-700">
                       {formatCurrency(v.amount, currency, language)}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                         {v.status}
                       </span>
                     </td>
@@ -203,33 +184,33 @@ export const AccountingView: React.FC = () => {
       {activeTab === "COA" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {chartOfAccounts.map((acc) => (
-            <div key={acc.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2 shadow-sm">
+            <div key={acc.id} className="bg-white border border-slate-200 rounded-2xl p-4 space-y-2 shadow-xs">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="font-mono font-bold text-xs text-indigo-400">{acc.code}</span>
-                    <span className="font-bold text-xs text-slate-100">{acc.name}</span>
+                    <span className="font-mono font-bold text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{acc.code}</span>
+                    <span className="font-bold text-xs text-slate-900">{acc.name}</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">{acc.nameMy}</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">{acc.nameMy}</p>
                 </div>
                 <span
                   className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
                     acc.category === "ASSET"
-                      ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
+                      ? "bg-blue-50 text-blue-700 border-blue-200"
                       : acc.category === "LIABILITY"
-                      ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                      ? "bg-amber-50 text-amber-700 border-amber-200"
                       : acc.category === "REVENUE"
-                      ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                      : "bg-rose-500/20 text-rose-300 border-rose-500/30"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-rose-50 text-rose-700 border-rose-200"
                   }`}
                 >
                   {acc.category}
                 </span>
               </div>
 
-              <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs font-mono">
+              <div className="pt-2 border-t border-slate-100 flex justify-between items-center text-xs font-mono">
                 <span className="text-slate-500">General Ledger Balance:</span>
-                <span className="font-bold text-slate-100">{formatCurrency(acc.balance, currency, language)}</span>
+                <span className="font-bold text-slate-900">{formatCurrency(acc.balance, currency, language)}</span>
               </div>
             </div>
           ))}
@@ -238,35 +219,35 @@ export const AccountingView: React.FC = () => {
 
       {/* Tab 3: Profit & Loss Income Statement */}
       {activeTab === "PL" && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm space-y-5 max-w-2xl mx-auto">
-          <div className="text-center space-y-1 border-b border-slate-800 pb-3">
-            <h2 className="font-bold text-base text-slate-100">OMNICHAIN RETAIL ENTERPRISE</h2>
-            <p className="text-xs text-slate-400">Statement of Profit & Loss (Consolidated Multi-Store)</p>
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5 max-w-2xl mx-auto">
+          <div className="text-center space-y-1 border-b border-slate-100 pb-3">
+            <h2 className="font-bold text-base text-slate-900">NEXTUNIT TECH RETAIL ENTERPRISE</h2>
+            <p className="text-xs text-slate-500">Statement of Profit & Loss (Consolidated Multi-Store)</p>
           </div>
 
           <div className="space-y-4 text-xs font-mono">
             {/* Revenue */}
             <div className="space-y-1.5">
-              <div className="font-bold text-slate-200 uppercase text-[11px] flex justify-between">
+              <div className="font-bold text-slate-800 uppercase text-[11px] flex justify-between">
                 <span>Operating Revenue</span>
                 <span>{formatCurrency(totalRevenue, currency, language)}</span>
               </div>
-              <div className="flex justify-between text-slate-400 pl-4">
+              <div className="flex justify-between text-slate-600 pl-4">
                 <span>4000 - Retail Merchandising Sales</span>
                 <span>{formatCurrency(totalRevenue, currency, language)}</span>
               </div>
             </div>
 
             {/* Expenses */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-800">
-              <div className="font-bold text-rose-300 uppercase text-[11px] flex justify-between">
+            <div className="space-y-1.5 pt-2 border-t border-slate-100">
+              <div className="font-bold text-rose-700 uppercase text-[11px] flex justify-between">
                 <span>Operating & Administrative Expenses</span>
                 <span>-{formatCurrency(totalExpenses, currency, language)}</span>
               </div>
               {chartOfAccounts
                 .filter((a) => a.category === "EXPENSE")
                 .map((exp) => (
-                  <div key={exp.id} className="flex justify-between text-slate-400 pl-4">
+                  <div key={exp.id} className="flex justify-between text-slate-600 pl-4">
                     <span>
                       {exp.code} - {exp.name}
                     </span>
@@ -276,9 +257,9 @@ export const AccountingView: React.FC = () => {
             </div>
 
             {/* Net Income */}
-            <div className="pt-3 border-t-2 border-slate-700 flex justify-between text-sm font-bold text-slate-100 bg-slate-950/80 p-3 rounded-xl">
-              <span className="text-emerald-400">Net Operating Income:</span>
-              <span className="text-emerald-400 font-mono">
+            <div className="pt-3 border-t-2 border-slate-200 flex justify-between text-sm font-bold text-slate-900 bg-slate-50 p-3 rounded-xl">
+              <span className="text-emerald-800">Net Operating Income:</span>
+              <span className="text-emerald-800 font-mono">
                 {formatCurrency(netOperatingProfit, currency, language)}
               </span>
             </div>
@@ -288,22 +269,22 @@ export const AccountingView: React.FC = () => {
 
       {/* Post Financial Voucher Modal */}
       {showVoucherModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-slate-200 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-sm text-slate-100">Post Financial Voucher</h3>
-              <button onClick={() => setShowVoucherModal(false)}>
-                <X className="w-5 h-5 text-slate-400" />
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 text-slate-800 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-sm text-slate-900">Post Financial Voucher</h3>
+              <button onClick={() => setShowVoucherModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateVoucher} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1">Voucher Type</label>
+                <label className="block text-slate-700 mb-1 font-medium">Voucher Type</label>
                 <select
                   value={newVoucher.type}
                   onChange={(e) => setNewVoucher({ ...newVoucher, type: e.target.value as any })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 font-medium"
                 >
                   <option value="CPV">CPV - Cash Payment Voucher</option>
                   <option value="CRV">CRV - Cash Receipt Voucher</option>
@@ -315,11 +296,11 @@ export const AccountingView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Debit Account</label>
+                  <label className="block text-slate-700 mb-1 font-medium">Debit Account</label>
                   <select
                     value={newVoucher.debitAccount}
                     onChange={(e) => setNewVoucher({ ...newVoucher, debitAccount: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:border-emerald-500 font-medium"
                   >
                     {chartOfAccounts.map((a) => (
                       <option key={a.id} value={a.code}>
@@ -329,11 +310,11 @@ export const AccountingView: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Credit Account</label>
+                  <label className="block text-slate-700 mb-1 font-medium">Credit Account</label>
                   <select
                     value={newVoucher.creditAccount}
                     onChange={(e) => setNewVoucher({ ...newVoucher, creditAccount: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:border-emerald-500 font-medium"
                   >
                     {chartOfAccounts.map((a) => (
                       <option key={a.id} value={a.code}>
@@ -345,39 +326,39 @@ export const AccountingView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Amount (MMK)</label>
+                <label className="block text-slate-700 mb-1 font-medium">Amount (MMK)</label>
                 <input
                   type="number"
                   required
                   min={1}
                   value={newVoucher.amount}
                   onChange={(e) => setNewVoucher({ ...newVoucher, amount: Number(e.target.value) })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:border-emerald-500 font-bold"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Description / Memo</label>
+                <label className="block text-slate-700 mb-1 font-medium">Description / Memo</label>
                 <textarea
                   required
                   rows={2}
                   value={newVoucher.description}
                   onChange={(e) => setNewVoucher({ ...newVoucher, description: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500 resize-none"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 resize-none font-medium"
                 />
               </div>
 
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowVoucherModal(false)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-medium"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold shadow-sm"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold shadow-xs transition-all hover:scale-[1.02]"
                 >
                   Post Voucher
                 </button>

@@ -37,18 +37,18 @@ export const ReceiptModal: React.FC = () => {
         className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 text-slate-800"
       >
         {/* Header bar */}
-        <div className="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
+        <div className="bg-emerald-600 text-white px-5 py-3.5 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <CheckCircle2 className="w-5 h-5 text-white" />
             <div>
               <h3 className="font-bold text-sm">Payment Successful</h3>
-              <p className="text-[11px] text-slate-300">Invoice: {activeReceipt.orderNumber}</p>
+              <p className="text-[11px] text-emerald-100">Invoice: {activeReceipt.orderNumber}</p>
             </div>
           </div>
           <button
             id="close-receipt-modal-btn"
             onClick={() => setActiveReceipt(null)}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-lg text-emerald-100 hover:text-white hover:bg-emerald-700 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -57,10 +57,10 @@ export const ReceiptModal: React.FC = () => {
         {/* Printable Thermal Receipt Container */}
         <div className="p-6 bg-slate-50 font-mono text-xs text-slate-700 leading-relaxed border-b border-slate-200 print:p-0 print:bg-white">
           <div className="text-center space-y-1 mb-4">
-            <div className="w-10 h-10 mx-auto rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-sm mb-1">
-              OC
+            <div className="w-10 h-10 mx-auto rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm mb-1 shadow-xs">
+              NU
             </div>
-            <h2 className="font-bold text-base tracking-wider text-slate-900">OMNICHAIN RETAIL</h2>
+            <h2 className="font-bold text-base tracking-wider text-slate-900">NEXTUNIT TECH RETAIL POS</h2>
             <p className="text-[10px] text-slate-500">{activeReceipt.branchName}</p>
             <p className="text-[10px] text-slate-500">Tel: +95 9 790 123456 • Tax Reg: IRD-MM-9901</p>
           </div>
@@ -68,7 +68,7 @@ export const ReceiptModal: React.FC = () => {
           <div className="border-t border-b border-dashed border-slate-300 py-2 my-2 space-y-1 text-[11px]">
             <div className="flex justify-between">
               <span>Receipt No:</span>
-              <span className="font-bold">{activeReceipt.orderNumber}</span>
+              <span className="font-bold text-slate-900">{activeReceipt.orderNumber}</span>
             </div>
             <div className="flex justify-between">
               <span>Date & Time:</span>
@@ -79,7 +79,7 @@ export const ReceiptModal: React.FC = () => {
               <span>{activeReceipt.cashierName}</span>
             </div>
             {activeReceipt.customerName && (
-              <div className="flex justify-between text-indigo-700 font-semibold">
+              <div className="flex justify-between text-emerald-700 font-semibold">
                 <span>VIP Customer:</span>
                 <span>{activeReceipt.customerName}</span>
               </div>
@@ -212,7 +212,7 @@ export const ReceiptModal: React.FC = () => {
           <button
             id="done-receipt-btn"
             onClick={() => setActiveReceipt(null)}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-sm transition-colors"
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
           >
             Done
           </button>

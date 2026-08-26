@@ -1,32 +1,26 @@
 import React, { useState, useMemo } from "react";
 import { useApp } from "../../context/AppContext";
 import { DynamicPricingRule } from "../../types";
-import { formatCurrency, DICTIONARY } from "../../utils/helpers";
+import { formatCurrency } from "../../utils/helpers";
 import {
   Tag,
   Clock,
   MapPin,
   Layers,
-  Percent,
   Plus,
   X,
-  CheckCircle2,
   AlertCircle,
   Edit3,
   Trash2,
   Search,
-  SlidersHorizontal,
   Calculator,
   Sparkles,
-  ArrowRight,
   TrendingDown,
   TrendingUp,
   Package,
   Calendar,
   Zap,
-  Gift,
   Coins,
-  DollarSign,
 } from "lucide-react";
 
 export const DynamicPricingView: React.FC = () => {
@@ -42,10 +36,8 @@ export const DynamicPricingView: React.FC = () => {
     language,
   } = useApp();
 
-  const t = DICTIONARY[language];
-
   // Filtering & Search
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("" );
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
 
@@ -53,7 +45,7 @@ export const DynamicPricingView: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
 
-  // Form Fields with smooth string-backed inputs for natural typing & backspacing
+  // Form Fields
   const [formName, setFormName] = useState<string>("");
   const [formTargetCategory, setFormTargetCategory] = useState<string>("All Categories");
   const [formRuleType, setFormRuleType] = useState<
@@ -83,9 +75,9 @@ export const DynamicPricingView: React.FC = () => {
   // Live Pricing Simulator State
   const [simProductId, setSimProductId] = useState<string>(products[0]?.id || "");
   const [simQuantityStr, setSimQuantityStr] = useState<string>("2");
-  const [simBranchId, setSimBranchId] = useState<string>(branches[0]?.id || "ALL");
-  const [simDate, setSimDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
-  const [simTime, setSimTime] = useState<string>(() => {
+  const [simBranchId] = useState<string>(branches[0]?.id || "ALL");
+  const [simDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
+  const [simTime] = useState<string>(() => {
     return new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   });
 
@@ -231,16 +223,13 @@ export const DynamicPricingView: React.FC = () => {
   // Filtered Rules List
   const filteredRules = useMemo(() => {
     return dynamicPricing.filter((rule) => {
-      // Search
       const matchesSearch =
         rule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         rule.targetCategory?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         rule.ruleType.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Type
       const matchesType = selectedTypeFilter === "ALL" || rule.ruleType === selectedTypeFilter;
 
-      // Status
       const matchesStatus =
         statusFilter === "ALL" ||
         (statusFilter === "ACTIVE" && rule.active) ||
@@ -359,25 +348,25 @@ export const DynamicPricingView: React.FC = () => {
   const activeCount = dynamicPricing.filter((r) => r.active).length;
 
   return (
-    <div id="dynamic-pricing-view" className="space-y-6 animate-fade-in text-slate-100">
+    <div id="dynamic-pricing-view" className="space-y-5 animate-fade-in text-slate-800">
       {/* Top Header */}
-      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-md">
-        <div className="flex items-center space-x-3.5">
-          <div className="p-3 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
-            <Tag className="w-6 h-6" />
+      <div className="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-center space-x-3">
+          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200">
+            <Tag className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-lg font-bold text-slate-100">
+              <h1 className="text-base font-bold text-slate-900">
                 {language === "my"
                   ? "အလိုအလျောက် ပြောင်းလဲသော ဈေးနှုန်းနှင့် Promotion စည်းမျဉ်းများ (Dynamic Pricing)"
                   : "Dynamic Pricing Engine & Campaign Promotions"}
               </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                 {activeCount} / {dynamicPricing.length} {language === "my" ? "အသက်ဝင်နေသည်" : "Active"}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               {language === "my"
                 ? "ရက်အလိုက် Promotion (Date Window & Min Qty)၊ ငွေအမောက်အလိုက် Cash Back / Discount နှင့် Happy Hour စည်းမျဉ်းများ စီမံခြင်း"
                 : "Manage Date-Range Promotions, Spend Cashback Tiers, Happy Hours & Bulk Volume Discounts across All Price Categories."}
@@ -389,7 +378,7 @@ export const DynamicPricingView: React.FC = () => {
         <button
           id="btn-create-pricing-rule"
           onClick={handleOpenCreateModal}
-          className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-indigo-600 hover:from-amber-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02] active:scale-95 shrink-0"
+          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 shadow-xs transition-all hover:scale-[1.02] active:scale-95 shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>{language === "my" ? "+ စည်းမျဉ်းအသစ် သတ်မှတ်မည်" : "+ Create New Pricing Rule"}</span>
@@ -398,61 +387,61 @@ export const DynamicPricingView: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-xl">
-          <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
-            <Layers className="w-3.5 h-3.5 text-indigo-400" />
+        <div className="bg-white border border-slate-200 p-3.5 rounded-xl shadow-xs">
+          <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5 text-emerald-600" />
             <span>{language === "my" ? "စုစုပေါင်း စည်းမျဉ်း" : "Total Rules"}</span>
           </div>
-          <div className="text-xl font-bold font-mono text-slate-100 mt-1">{dynamicPricing.length}</div>
+          <div className="text-xl font-bold font-mono text-slate-900 mt-1">{dynamicPricing.length}</div>
         </div>
 
-        <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-xl">
-          <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="bg-white border border-slate-200 p-3.5 rounded-xl shadow-xs">
+          <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-emerald-600" />
             <span>{language === "my" ? "ရက်အလိုက် Promo" : "Date-Range Promo"}</span>
           </div>
-          <div className="text-xl font-bold font-mono text-emerald-400 mt-1">
+          <div className="text-xl font-bold font-mono text-emerald-700 mt-1">
             {dynamicPricing.filter((r) => r.ruleType === "DATE_RANGE").length}
           </div>
         </div>
 
-        <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-xl">
-          <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
-            <Coins className="w-3.5 h-3.5 text-amber-400" />
+        <div className="bg-white border border-slate-200 p-3.5 rounded-xl shadow-xs">
+          <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+            <Coins className="w-3.5 h-3.5 text-amber-600" />
             <span>{language === "my" ? "Spend Cashback" : "Spend Cashback"}</span>
           </div>
-          <div className="text-xl font-bold font-mono text-amber-400 mt-1">
+          <div className="text-xl font-bold font-mono text-amber-700 mt-1">
             {dynamicPricing.filter((r) => r.ruleType === "SPEND_CASHBACK").length}
           </div>
         </div>
 
-        <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-xl">
-          <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-purple-400" />
+        <div className="bg-white border border-slate-200 p-3.5 rounded-xl shadow-xs">
+          <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-purple-600" />
             <span>{language === "my" ? "Happy Hour" : "Happy Hour"}</span>
           </div>
-          <div className="text-xl font-bold font-mono text-purple-400 mt-1">
+          <div className="text-xl font-bold font-mono text-purple-700 mt-1">
             {dynamicPricing.filter((r) => r.ruleType === "TIME_WINDOW").length}
           </div>
         </div>
 
-        <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-xl">
-          <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
-            <Package className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="bg-white border border-slate-200 p-3.5 rounded-xl shadow-xs">
+          <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+            <Package className="w-3.5 h-3.5 text-teal-600" />
             <span>{language === "my" ? "Volume Tier" : "Volume Tier"}</span>
           </div>
-          <div className="text-xl font-bold font-mono text-cyan-400 mt-1">
+          <div className="text-xl font-bold font-mono text-teal-700 mt-1">
             {dynamicPricing.filter((r) => r.ruleType === "VOLUME_TIER").length}
           </div>
         </div>
       </div>
 
       {/* Main Grid: Left Rules List & Right Simulator */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left Column: Filter & Rules (8 cols) */}
         <div className="lg:col-span-8 space-y-4">
           {/* Filter Bar */}
-          <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-2xl space-y-3">
+          <div className="bg-white border border-slate-200 p-3.5 rounded-2xl space-y-3 shadow-xs">
             <div className="flex flex-col sm:flex-row items-center gap-3">
               {/* Search */}
               <div className="relative flex-1 w-full">
@@ -466,19 +455,19 @@ export const DynamicPricingView: React.FC = () => {
                       ? "စည်းမျဉ်းအမည် သို့မဟုတ် အမျိုးအစားဖြင့် ရှာဖွေပါ..."
                       : "Search by rule name, type, or category..."
                   }
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors font-medium"
                 />
               </div>
 
               {/* Status Filter */}
-              <div className="flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs shrink-0 w-full sm:w-auto">
+              <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs shrink-0 w-full sm:w-auto font-semibold">
                 <button
                   type="button"
                   onClick={() => setStatusFilter("ALL")}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                     statusFilter === "ALL"
-                      ? "bg-slate-800 text-white"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-white text-slate-900 shadow-xs"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
                   {language === "my" ? "အားလုံး" : "All"}
@@ -488,8 +477,8 @@ export const DynamicPricingView: React.FC = () => {
                   onClick={() => setStatusFilter("ACTIVE")}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                     statusFilter === "ACTIVE"
-                      ? "bg-emerald-600 text-white"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
                   {language === "my" ? "Active သာ" : "Active"}
@@ -499,8 +488,8 @@ export const DynamicPricingView: React.FC = () => {
                   onClick={() => setStatusFilter("INACTIVE")}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                     statusFilter === "INACTIVE"
-                      ? "bg-slate-800 text-white"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-white text-slate-900 shadow-xs"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
                   {language === "my" ? "Disabled သာ" : "Disabled"}
@@ -515,8 +504,8 @@ export const DynamicPricingView: React.FC = () => {
                 onClick={() => setSelectedTypeFilter("ALL")}
                 className={`px-3 py-1.5 rounded-lg font-semibold shrink-0 transition-colors ${
                   selectedTypeFilter === "ALL"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "bg-slate-950 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-800"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200"
                 }`}
               >
                 {language === "my" ? "အားလုံး (All Types)" : "All Types"}
@@ -526,8 +515,8 @@ export const DynamicPricingView: React.FC = () => {
                 onClick={() => setSelectedTypeFilter("DATE_RANGE")}
                 className={`px-3 py-1.5 rounded-lg font-semibold shrink-0 flex items-center gap-1.5 transition-colors ${
                   selectedTypeFilter === "DATE_RANGE"
-                    ? "bg-emerald-600 text-white shadow-sm"
-                    : "bg-slate-950 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-800"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200"
                 }`}
               >
                 <Calendar className="w-3.5 h-3.5" />
@@ -538,8 +527,8 @@ export const DynamicPricingView: React.FC = () => {
                 onClick={() => setSelectedTypeFilter("SPEND_CASHBACK")}
                 className={`px-3 py-1.5 rounded-lg font-semibold shrink-0 flex items-center gap-1.5 transition-colors ${
                   selectedTypeFilter === "SPEND_CASHBACK"
-                    ? "bg-amber-600 text-white shadow-sm"
-                    : "bg-slate-950 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-800"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200"
                 }`}
               >
                 <Coins className="w-3.5 h-3.5" />
@@ -550,8 +539,8 @@ export const DynamicPricingView: React.FC = () => {
                 onClick={() => setSelectedTypeFilter("TIME_WINDOW")}
                 className={`px-3 py-1.5 rounded-lg font-semibold shrink-0 flex items-center gap-1.5 transition-colors ${
                   selectedTypeFilter === "TIME_WINDOW"
-                    ? "bg-purple-600 text-white shadow-sm"
-                    : "bg-slate-950 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-800"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200"
                 }`}
               >
                 <Clock className="w-3.5 h-3.5" />
@@ -562,8 +551,8 @@ export const DynamicPricingView: React.FC = () => {
                 onClick={() => setSelectedTypeFilter("VOLUME_TIER")}
                 className={`px-3 py-1.5 rounded-lg font-semibold shrink-0 flex items-center gap-1.5 transition-colors ${
                   selectedTypeFilter === "VOLUME_TIER"
-                    ? "bg-cyan-600 text-white shadow-sm"
-                    : "bg-slate-950 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-800"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200"
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
@@ -574,8 +563,8 @@ export const DynamicPricingView: React.FC = () => {
                 onClick={() => setSelectedTypeFilter("REGIONAL_INDEX")}
                 className={`px-3 py-1.5 rounded-lg font-semibold shrink-0 flex items-center gap-1.5 transition-colors ${
                   selectedTypeFilter === "REGIONAL_INDEX"
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-slate-950 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-800"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200"
                 }`}
               >
                 <MapPin className="w-3.5 h-3.5" />
@@ -586,8 +575,8 @@ export const DynamicPricingView: React.FC = () => {
                 onClick={() => setSelectedTypeFilter("CLEARANCE_AGING")}
                 className={`px-3 py-1.5 rounded-lg font-semibold shrink-0 flex items-center gap-1.5 transition-colors ${
                   selectedTypeFilter === "CLEARANCE_AGING"
-                    ? "bg-rose-600 text-white shadow-sm"
-                    : "bg-slate-950 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-800"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200"
                 }`}
               >
                 <Zap className="w-3.5 h-3.5" />
@@ -598,19 +587,19 @@ export const DynamicPricingView: React.FC = () => {
 
           {/* Pricing Rules Grid */}
           {filteredRules.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center space-y-3">
-              <Tag className="w-10 h-10 text-slate-600 mx-auto" />
-              <div className="text-sm font-semibold text-slate-300">
+            <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center space-y-3 shadow-xs">
+              <Tag className="w-10 h-10 text-slate-300 mx-auto" />
+              <div className="text-sm font-semibold text-slate-700">
                 {language === "my" ? "စည်းမျဉ်း ရှာမတွေ့ပါ" : "No pricing rules found"}
               </div>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              <p className="text-xs text-slate-400 max-w-sm mx-auto">
                 {language === "my"
                   ? "အထက်ပါ '+ စည်းမျဉ်းအသစ် သတ်မှတ်မည်' ခလုတ်ကို နှိပ်၍ အလိုအလျောက် ဈေးနှုန်းစည်းမျဉ်းအသစ် ထည့်သွင်းနိုင်ပါသည်။"
                   : "Click the '+ Create New Pricing Rule' button above to configure dynamic discount, date range promo, or cashback rules."}
               </p>
               <button
                 onClick={handleOpenCreateModal}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl inline-flex items-center gap-1.5 shadow-md"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl inline-flex items-center gap-1.5 shadow-xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>{language === "my" ? "စည်းမျဉ်းအသစ် ဖန်တီးမည်" : "Create Rule Now"}</span>
@@ -620,140 +609,136 @@ export const DynamicPricingView: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredRules.map((rule) => {
                 const isFixed = rule.adjustmentType === "FIXED_AMOUNT" || (rule.cashbackAmount && rule.cashbackAmount > 0);
-                const isDiscount = rule.adjustmentValue < 0 || isFixed;
                 const percentVal = Math.abs(rule.adjustmentValue);
                 const cashbackVal = rule.cashbackAmount || Math.abs(rule.adjustmentValue);
 
                 // Type details badge formatting
-                let typeColor = "bg-indigo-500/20 text-indigo-300 border-indigo-500/40";
+                let typeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
                 let typeIcon = <Tag className="w-3 h-3" />;
                 let conditionText = "";
 
                 if (rule.ruleType === "DATE_RANGE") {
-                  typeColor = "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+                  typeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
                   typeIcon = <Calendar className="w-3 h-3" />;
                   conditionText = `${rule.startDate || "Start"} to ${rule.endDate || "End"} (Min ${rule.minUnits || 1} Qty)`;
                 } else if (rule.ruleType === "SPEND_CASHBACK") {
-                  typeColor = "bg-amber-500/20 text-amber-300 border-amber-500/40";
+                  typeColor = "bg-amber-50 text-amber-700 border-amber-200";
                   typeIcon = <Coins className="w-3 h-3" />;
                   conditionText = `Spend ≥ ${formatCurrency(rule.minSpend || 0, currency, language)}`;
                 } else if (rule.ruleType === "TIME_WINDOW") {
-                  typeColor = "bg-purple-500/20 text-purple-300 border-purple-500/40";
+                  typeColor = "bg-purple-50 text-purple-700 border-purple-200";
                   typeIcon = <Clock className="w-3 h-3" />;
                   conditionText = `Daily ${rule.startTime || "14:00"} - ${rule.endTime || "18:00"}`;
                 } else if (rule.ruleType === "VOLUME_TIER") {
-                  typeColor = "bg-cyan-500/20 text-cyan-300 border-cyan-500/40";
+                  typeColor = "bg-teal-50 text-teal-700 border-teal-200";
                   typeIcon = <Layers className="w-3 h-3" />;
                   conditionText = `Min Quantity ≥ ${rule.minUnits || 1} units`;
                 } else if (rule.ruleType === "REGIONAL_INDEX") {
-                  typeColor = "bg-blue-500/20 text-blue-300 border-blue-500/40";
+                  typeColor = "bg-blue-50 text-blue-700 border-blue-200";
                   typeIcon = <MapPin className="w-3 h-3" />;
-                  const bName = branches.find((b) => b.id === rule.branchId)?.name || "All Branches";
-                  conditionText = `Applies to: ${bName}`;
+                  conditionText = `Branch: ${rule.branchId || "All Branches"}`;
                 } else if (rule.ruleType === "CLEARANCE_AGING") {
-                  typeColor = "bg-rose-500/20 text-rose-300 border-rose-500/40";
+                  typeColor = "bg-rose-50 text-rose-700 border-rose-200";
                   typeIcon = <Zap className="w-3 h-3" />;
-                  conditionText = `Aging Stock > ${rule.agingDays || 90} days`;
+                  conditionText = `Aging > ${rule.agingDays || 90} Days`;
                 }
 
                 return (
                   <div
                     key={rule.id}
-                    className={`bg-slate-900 border rounded-2xl p-4 space-y-3.5 shadow-sm transition-all hover:border-slate-700 flex flex-col justify-between ${
-                      rule.active ? "border-slate-800" : "border-slate-800/50 opacity-75"
+                    className={`bg-white border rounded-2xl p-4 space-y-3 transition-all shadow-xs ${
+                      rule.active
+                        ? "border-slate-200 hover:border-emerald-300"
+                        : "border-slate-200 opacity-60 bg-slate-50/50"
                     }`}
                   >
-                    <div className="space-y-2.5">
-                      {/* Top Header: Badge & Status Toggle */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex flex-wrap items-center gap-1.5">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold border flex items-center gap-1 ${typeColor}`}
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${typeColor}`}
                           >
                             {typeIcon}
                             <span>{rule.ruleType.replace("_", " ")}</span>
                           </span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                             {rule.targetCategory || "All Categories"}
                           </span>
                         </div>
+                        <h3 className="font-bold text-xs text-slate-900 leading-snug">{rule.name}</h3>
+                      </div>
 
-                        <button
-                          type="button"
-                          onClick={() => toggleDynamicPricingRule(rule.id)}
-                          className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${
-                            rule.active
-                              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-xs"
-                              : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
+                      {/* Toggle Active Switch */}
+                      <button
+                        type="button"
+                        onClick={() => toggleDynamicPricingRule(rule.id)}
+                        className={`w-9 h-5 rounded-full transition-colors relative flex items-center px-0.5 ${
+                          rule.active ? "bg-emerald-600" : "bg-slate-300"
+                        }`}
+                        title={rule.active ? "Click to Disable Rule" : "Click to Enable Rule"}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                            rule.active ? "translate-x-4" : "translate-x-0"
                           }`}
-                        >
-                          {rule.active ? "ENABLED" : "DISABLED"}
-                        </button>
-                      </div>
-
-                      {/* Rule Name */}
-                      <div>
-                        <h3 className="font-bold text-sm text-slate-100 leading-snug">{rule.name}</h3>
-                        {rule.description && (
-                          <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-2">{rule.description}</p>
-                        )}
-                      </div>
-
-                      {/* Condition & Price Adjustment Card */}
-                      <div className="space-y-1.5 text-xs bg-slate-950/80 p-3 rounded-xl border border-slate-800/90 font-mono">
-                        <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                          <span className="font-sans">Trigger Condition:</span>
-                          <span className="text-slate-200 font-semibold truncate max-w-[190px]" title={conditionText}>
-                            {conditionText}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-1 border-t border-slate-850">
-                          <span className="font-sans text-slate-400 text-[11px]">Benefit / Adjustment:</span>
-                          <span
-                            className={`font-bold text-xs flex items-center gap-1 ${
-                              isDiscount ? "text-emerald-400" : "text-amber-400"
-                            }`}
-                          >
-                            {isDiscount ? (
-                              <TrendingDown className="w-3.5 h-3.5 text-emerald-400" />
-                            ) : (
-                              <TrendingUp className="w-3.5 h-3.5 text-amber-400" />
-                            )}
-                            <span>
-                              {isFixed
-                                ? `-${formatCurrency(cashbackVal, currency, language)} Cashback`
-                                : isDiscount
-                                ? `-${percentVal}% Discount`
-                                : `+${percentVal}% Markup`}
-                            </span>
-                          </span>
-                        </div>
-                      </div>
+                        />
+                      </button>
                     </div>
 
-                    {/* Bottom Actions: Edit & Delete */}
-                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-end space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEditModal(rule)}
-                        className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 border border-slate-700 transition-colors"
-                      >
-                        <Edit3 className="w-3 h-3 text-indigo-400" />
-                        <span>{language === "my" ? "ပြင်ဆင်မည်" : "Edit"}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (confirm(`Are you sure you want to delete "${rule.name}"?`)) {
-                            deleteDynamicPricingRule(rule.id);
-                          }
-                        }}
-                        className="px-2.5 py-1 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 hover:text-rose-200 rounded-lg text-xs font-semibold flex items-center gap-1 border border-rose-800/40 transition-colors"
-                      >
-                        <Trash2 className="w-3 h-3 text-rose-400" />
-                        <span>{language === "my" ? "ဖျက်မည်" : "Delete"}</span>
-                      </button>
+                    {/* Condition Pill */}
+                    <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
+                      <div className="font-medium flex items-center justify-between">
+                        <span>Condition Trigger:</span>
+                        <span className="font-mono text-slate-900 font-bold">{conditionText}</span>
+                      </div>
+                      {rule.description && (
+                        <p className="text-[10px] text-slate-500 italic pt-0.5 border-t border-slate-200">
+                          {rule.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Value Badge */}
+                    <div className="flex items-center justify-between pt-1">
+                      <div>
+                        <span className="text-[10px] text-slate-500">Reward / Effect:</span>
+                        <div className="font-bold font-mono text-xs">
+                          {isFixed ? (
+                            <span className="text-emerald-700">
+                              -{formatCurrency(cashbackVal, currency, language)} Cashback
+                            </span>
+                          ) : rule.adjustmentValue < 0 ? (
+                            <span className="text-emerald-700">-{percentVal}% Discount</span>
+                          ) : (
+                            <span className="text-amber-700">+{percentVal}% Markup</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center space-x-1">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditModal(rule)}
+                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors"
+                          title="Edit Rule"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(language === "my" ? "ဤစည်းမျဉ်းကို ဖျက်မည်လား?" : "Delete this pricing rule?")) {
+                              deleteDynamicPricingRule(rule.id);
+                            }
+                          }}
+                          className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors"
+                          title="Delete Rule"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -764,16 +749,16 @@ export const DynamicPricingView: React.FC = () => {
 
         {/* Right Column: Interactive Pricing Calculator / Simulator (4 cols) */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4.5 space-y-4 shadow-md sticky top-16">
-            <div className="flex items-center space-x-2.5 border-b border-slate-800 pb-3">
-              <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4.5 space-y-4 shadow-xs sticky top-16">
+            <div className="flex items-center space-x-2.5 border-b border-slate-100 pb-3">
+              <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200">
                 <Calculator className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-bold text-xs text-slate-100">
+                <h3 className="font-bold text-xs text-slate-900">
                   {language === "my" ? "ဈေးနှုန်းတွက်ချက်မှု စမ်းသပ်စက်" : "Live Dynamic Pricing Simulator"}
                 </h3>
-                <p className="text-[10px] text-slate-400">
+                <p className="text-[10px] text-slate-500">
                   {language === "my"
                     ? "ရက်စွဲ၊ အချိန်၊ အရေအတွက်နှင့် Cash Back စည်းမျဉ်းများ တိုက်ရိုက် စမ်းသပ်ပါ"
                     : "Simulate date ranges, quantities, spend cashback & time windows live"}
@@ -785,13 +770,13 @@ export const DynamicPricingView: React.FC = () => {
             <div className="space-y-3.5 text-xs">
               {/* Product Picker */}
               <div>
-                <label className="block text-slate-400 mb-1 font-medium text-[11px]">
+                <label className="block text-slate-600 mb-1 font-medium text-[11px]">
                   {language === "my" ? "စမ်းသပ်မည့် ပစ္စည်း (Sample Product):" : "Sample Product:"}
                 </label>
                 <select
                   value={simProductId}
                   onChange={(e) => setSimProductId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-500 font-medium"
                 >
                   {products.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -801,13 +786,13 @@ export const DynamicPricingView: React.FC = () => {
                 </select>
               </div>
 
-              {/* Quantity Input with Stepper & Quick Presets */}
+              {/* Quantity Input with Stepper */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-slate-400 font-medium text-[11px]">
+                  <label className="text-slate-600 font-medium text-[11px]">
                     {language === "my" ? "ဝယ်ယူမည့် အရေအတွက် (Quantity / Qty):" : "Quantity (Qty):"}
                   </label>
-                  <span className="text-[10px] text-indigo-400 font-mono font-semibold">
+                  <span className="text-[10px] text-emerald-700 font-mono font-semibold">
                     {simQuantity} {simQuantity > 1 ? "units" : "unit"}
                   </span>
                 </div>
@@ -816,7 +801,7 @@ export const DynamicPricingView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setSimQuantityStr(String(Math.max(1, (parseInt(simQuantityStr) || 1) - 1)))}
-                    className="w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white flex items-center justify-center font-bold text-sm"
+                    className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 hover:bg-slate-200 flex items-center justify-center font-bold text-sm"
                   >
                     -
                   </button>
@@ -828,152 +813,46 @@ export const DynamicPricingView: React.FC = () => {
                     onChange={(e) => setSimQuantityStr(e.target.value)}
                     onFocus={(e) => e.target.select()}
                     placeholder="Enter any qty..."
-                    className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-mono font-bold text-center focus:outline-none focus:border-indigo-500"
+                    className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-mono font-bold text-center focus:outline-none focus:border-emerald-500"
                   />
                   <button
                     type="button"
                     onClick={() => setSimQuantityStr(String((parseInt(simQuantityStr) || 0) + 1))}
-                    className="w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white flex items-center justify-center font-bold text-sm"
+                    className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 hover:bg-slate-200 flex items-center justify-center font-bold text-sm"
                   >
                     +
                   </button>
                   <button
                     type="button"
                     onClick={() => setSimQuantityStr(String((parseInt(simQuantityStr) || 0) + 5))}
-                    className="px-2 h-8 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white text-[10px] font-mono"
+                    className="px-2 h-8 rounded-lg bg-slate-100 border border-slate-300 text-slate-600 hover:bg-slate-200 text-[10px] font-mono font-semibold"
                   >
                     +5
                   </button>
                 </div>
-
-                {/* Quick Qty Chips */}
-                <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar pt-0.5">
-                  {[1, 2, 5, 10, 20, 50, 100].map((qtyVal) => (
-                    <button
-                      key={qtyVal}
-                      type="button"
-                      onClick={() => setSimQuantityStr(String(qtyVal))}
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-mono border transition-colors shrink-0 ${
-                        simQuantity === qtyVal
-                          ? "bg-indigo-600 text-white border-indigo-500"
-                          : "bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200"
-                      }`}
-                    >
-                      {qtyVal}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Simulated Date Picker */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-slate-400 font-medium text-[11px]">
-                    {language === "my" ? "စမ်းသပ်မည့် ရက်စွဲ (Simulated Date):" : "Simulated Date:"}
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setSimDate(new Date().toISOString().split("T")[0])}
-                    className="text-[10px] text-emerald-400 hover:underline flex items-center gap-1"
-                  >
-                    <Calendar className="w-2.5 h-2.5" />
-                    <span>{language === "my" ? "ယနေ့ရက်စွဲ" : "Today"}</span>
-                  </button>
-                </div>
-                <input
-                  type="date"
-                  value={simDate}
-                  onChange={(e) => setSimDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              {/* Simulated Time & Quick Presets */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-slate-400 font-medium text-[11px]">
-                    {language === "my" ? "စမ်းသပ်ချိန် (Simulated Time):" : "Simulated Time:"}
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSimTime(new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }))
-                    }
-                    className="text-[10px] text-amber-400 hover:underline flex items-center gap-1"
-                  >
-                    <Clock className="w-2.5 h-2.5" />
-                    <span>{language === "my" ? "လက်ရှိအချိန်" : "Set to Now"}</span>
-                  </button>
-                </div>
-                <input
-                  type="time"
-                  value={simTime}
-                  onChange={(e) => setSimTime(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500"
-                />
-
-                <div className="flex items-center gap-1">
-                  {[
-                    { label: "14:00 (Happy)", time: "14:00" },
-                    { label: "16:30 (Peak)", time: "16:30" },
-                    { label: "20:00 (Night)", time: "20:00" },
-                  ].map((preset) => (
-                    <button
-                      key={preset.time}
-                      type="button"
-                      onClick={() => setSimTime(preset.time)}
-                      className={`flex-1 py-0.5 rounded text-[10px] font-mono border text-center transition-colors ${
-                        simTime === preset.time
-                          ? "bg-amber-600/30 text-amber-300 border-amber-500/50"
-                          : "bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200"
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Branch */}
-              <div>
-                <label className="block text-slate-400 mb-1 font-medium text-[11px]">
-                  {language === "my" ? "အရောင်းဆိုင် (Branch Location):" : "Branch Location:"}
-                </label>
-                <select
-                  value={simBranchId}
-                  onChange={(e) => setSimBranchId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="ALL">All Branches (Global)</option>
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {language === "my" ? b.nameMy : b.name} ({b.code})
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
 
             {/* Live Calculation Output Card */}
             {simulationResult && (
-              <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2.5 text-xs">
-                <div className="flex justify-between text-slate-400 text-[11px]">
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5 text-xs">
+                <div className="flex justify-between text-slate-500 text-[11px]">
                   <span>မူရင်း ရောင်းဈေး (Base Unit Price):</span>
-                  <span className="font-mono text-slate-300">
+                  <span className="font-mono text-slate-800 font-semibold">
                     {formatCurrency(simulationResult.baseUnitPrice, currency, language)}
                   </span>
                 </div>
 
                 {/* Applied Rules Chips */}
-                <div className="space-y-1 py-1.5 border-y border-slate-850">
-                  <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider flex items-center justify-between">
+                <div className="space-y-1 py-1.5 border-y border-slate-200">
+                  <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider flex items-center justify-between">
                     <span>{language === "my" ? "ကိုက်ညီသော စည်းမျဉ်းများ:" : "Triggered Rules:"}</span>
-                    <span className="font-mono text-indigo-400 font-bold">
+                    <span className="font-mono text-emerald-700 font-bold">
                       {simulationResult.appliedRules.length} matched
                     </span>
                   </div>
                   {simulationResult.appliedRules.length === 0 ? (
-                    <div className="text-[11px] text-slate-500 italic py-0.5">
+                    <div className="text-[11px] text-slate-400 italic py-0.5">
                       {language === "my"
                         ? "မည်သည့် စည်းမျဉ်းမှ မကိုက်ညီပါ (မူရင်းဈေးအတိုင်း)"
                         : "No active rules matched current conditions"}
@@ -982,12 +861,12 @@ export const DynamicPricingView: React.FC = () => {
                     simulationResult.appliedRules.map((item, idx) => (
                       <div
                         key={idx}
-                        className="flex justify-between text-[11px] items-center bg-slate-900/60 px-2 py-1 rounded-lg border border-slate-850"
+                        className="flex justify-between text-[11px] items-center bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-xs"
                       >
-                        <span className="truncate pr-2 text-slate-200 font-medium">• {item.text}</span>
+                        <span className="truncate pr-2 text-slate-800 font-medium">• {item.text}</span>
                         <span
                           className={`font-mono font-bold shrink-0 text-xs ${
-                            item.isDiscount ? "text-emerald-400" : "text-amber-400"
+                            item.isDiscount ? "text-emerald-700" : "text-amber-700"
                           }`}
                         >
                           {item.amountOrPct}
@@ -998,35 +877,35 @@ export const DynamicPricingView: React.FC = () => {
                 </div>
 
                 {/* Adjusted Unit Price */}
-                <div className="flex justify-between text-slate-200 font-semibold items-center">
+                <div className="flex justify-between text-slate-800 font-semibold items-center">
                   <span>သတ်မှတ်ပြီး တစ်ခုချင်းရောင်းဈေး:</span>
-                  <span className="font-mono text-emerald-400 font-bold text-sm">
+                  <span className="font-mono text-emerald-700 font-bold text-sm">
                     {formatCurrency(simulationResult.adjustedUnitPrice, currency, language)}
                   </span>
                 </div>
 
                 {/* Total Calculated Line */}
-                <div className="pt-2 border-t border-slate-800 space-y-1">
-                  <div className="flex justify-between text-slate-400 text-[11px]">
+                <div className="pt-2 border-t border-slate-200 space-y-1">
+                  <div className="flex justify-between text-slate-500 text-[11px]">
                     <span>မူရင်းစုစုပေါင်း ({simQuantity} ခု):</span>
-                    <span className="font-mono line-through text-slate-500">
+                    <span className="font-mono line-through text-slate-400">
                       {formatCurrency(simulationResult.originalTotal, currency, language)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-slate-100 font-bold text-sm">
+                  <div className="flex justify-between text-slate-900 font-bold text-sm">
                     <span>နောက်ဆုံး ကျသင့်ငွေ:</span>
-                    <span className="font-mono text-amber-400 text-base">
+                    <span className="font-mono text-emerald-700 text-base">
                       {formatCurrency(simulationResult.finalTotal, currency, language)}
                     </span>
                   </div>
                   {simulationResult.difference !== 0 && (
                     <div className="text-right text-[11px] font-mono font-bold pt-0.5">
                       {simulationResult.difference < 0 ? (
-                        <span className="text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-md inline-block">
+                        <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">
                           Total Discount: -{formatCurrency(Math.abs(simulationResult.difference), currency, language)}
                         </span>
                       ) : (
-                        <span className="text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-md inline-block">
+                        <span className="text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md inline-block">
                           Total Markup: +{formatCurrency(simulationResult.difference, currency, language)}
                         </span>
                       )}
@@ -1041,16 +920,16 @@ export const DynamicPricingView: React.FC = () => {
 
       {/* CREATE / EDIT PRICING RULE MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 space-y-4 text-slate-200 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-5 space-y-4 text-slate-800 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto custom-scrollbar">
             {/* Modal Header */}
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2.5">
-                <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200">
                   <Tag className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-slate-100">
+                  <h3 className="font-bold text-sm text-slate-900">
                     {editingRuleId
                       ? language === "my"
                         ? "စည်းမျဉ်း ပြင်ဆင်ခြင်း (Edit Pricing Rule)"
@@ -1059,7 +938,7 @@ export const DynamicPricingView: React.FC = () => {
                       ? "စည်းမျဉ်းအသစ် သတ်မှတ်ခြင်း (New Pricing Rule)"
                       : "Create Dynamic Pricing Rule"}
                   </h3>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-500">
                     {language === "my"
                       ? "ရက်အလိုက် Promotion၊ ငွေပမာဏ Cash Back သို့မဟုတ် အချိန်ပိုင်း/လက်ကား လျှော့ဈေး သတ်မှတ်ပါ"
                       : "Configure date promotions, spend cashback tiers, happy hour or volume discount rules"}
@@ -1069,7 +948,7 @@ export const DynamicPricingView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1077,7 +956,7 @@ export const DynamicPricingView: React.FC = () => {
 
             {/* Error Message */}
             {formError && (
-              <div className="p-3 bg-rose-950/60 border border-rose-800 text-rose-300 rounded-xl text-xs flex items-center gap-2">
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{formError}</span>
               </div>
@@ -1087,7 +966,7 @@ export const DynamicPricingView: React.FC = () => {
             <form onSubmit={handleSaveRule} className="space-y-4 text-xs">
               {/* 1. Rule Name */}
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-700 font-semibold mb-1">
                   {language === "my" ? "စည်းမျဉ်းအမည် (Rule Name) *" : "Rule Name *"}
                 </label>
                 <input
@@ -1095,14 +974,14 @@ export const DynamicPricingView: React.FC = () => {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="e.g. Monsoon Promotion (Buy 2+ Get 12% Off), Spend 500k Get 25k Cashback..."
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 font-medium"
                   required
                 />
               </div>
 
               {/* 2. Rule Type Selection */}
               <div>
-                <label className="block text-slate-300 font-semibold mb-1.5">
+                <label className="block text-slate-700 font-semibold mb-1.5">
                   {language === "my" ? "စည်းမျဉ်း အမျိုးအစား (Rule Type)" : "Rule Type"}
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -1114,15 +993,15 @@ export const DynamicPricingView: React.FC = () => {
                     }}
                     className={`p-2.5 rounded-xl border text-left flex flex-col gap-1 transition-all ${
                       formRuleType === "DATE_RANGE"
-                        ? "bg-emerald-950/40 border-emerald-500/60 ring-1 ring-emerald-500/30 text-emerald-200"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
+                        ? "bg-emerald-50 border-emerald-500 ring-1 ring-emerald-400 text-emerald-900"
+                        : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    <div className="font-bold flex items-center gap-1.5 text-xs">
-                      <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                    <div className="font-bold flex items-center gap-1.5 text-xs text-emerald-800">
+                      <Calendar className="w-3.5 h-3.5 text-emerald-600" />
                       <span>Date-Range Promo</span>
                     </div>
-                    <span className="text-[10px] text-slate-400">ရက်အလိုက် ကာလသတ်မှတ်ပြီး Qty အလိုက် လျှော့ပေးခြင်း</span>
+                    <span className="text-[10px] text-slate-500">ရက်အလိုက် ကာလသတ်မှတ်ပြီး Qty အလိုက် လျှော့ပေးခြင်း</span>
                   </button>
 
                   <button
@@ -1133,15 +1012,15 @@ export const DynamicPricingView: React.FC = () => {
                     }}
                     className={`p-2.5 rounded-xl border text-left flex flex-col gap-1 transition-all ${
                       formRuleType === "SPEND_CASHBACK"
-                        ? "bg-amber-950/40 border-amber-500/60 ring-1 ring-amber-500/30 text-amber-200"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
+                        ? "bg-amber-50 border-amber-500 ring-1 ring-amber-400 text-amber-900"
+                        : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    <div className="font-bold flex items-center gap-1.5 text-xs">
-                      <Coins className="w-3.5 h-3.5 text-amber-400" />
+                    <div className="font-bold flex items-center gap-1.5 text-xs text-amber-800">
+                      <Coins className="w-3.5 h-3.5 text-amber-600" />
                       <span>Spend Cashback</span>
                     </div>
-                    <span className="text-[10px] text-slate-400">ငွေအမောက် ဘယ်လောက်ဖိုးဝယ်ရင် Cashback ပေးမည်</span>
+                    <span className="text-[10px] text-slate-500">ငွေအမောက် ဘယ်လောက်ဖိုးဝယ်ရင် Cashback ပေးမည်</span>
                   </button>
 
                   <button
@@ -1152,15 +1031,15 @@ export const DynamicPricingView: React.FC = () => {
                     }}
                     className={`p-2.5 rounded-xl border text-left flex flex-col gap-1 transition-all ${
                       formRuleType === "TIME_WINDOW"
-                        ? "bg-purple-950/40 border-purple-500/60 ring-1 ring-purple-500/30 text-purple-200"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
+                        ? "bg-purple-50 border-purple-500 ring-1 ring-purple-400 text-purple-900"
+                        : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    <div className="font-bold flex items-center gap-1.5 text-xs">
-                      <Clock className="w-3.5 h-3.5 text-purple-400" />
+                    <div className="font-bold flex items-center gap-1.5 text-xs text-purple-800">
+                      <Clock className="w-3.5 h-3.5 text-purple-600" />
                       <span>Happy Hour / Time</span>
                     </div>
-                    <span className="text-[10px] text-slate-400">နေ့စဉ် အချိန်ပိုင်း အလိုအလျောက် ဈေးလျှော့ခြင်း</span>
+                    <span className="text-[10px] text-slate-500">နေ့စဉ် အချိန်ပိုင်း အလိုအလျောက် ဈေးလျှော့ခြင်း</span>
                   </button>
 
                   <button
@@ -1171,131 +1050,60 @@ export const DynamicPricingView: React.FC = () => {
                     }}
                     className={`p-2.5 rounded-xl border text-left flex flex-col gap-1 transition-all ${
                       formRuleType === "VOLUME_TIER"
-                        ? "bg-cyan-950/40 border-cyan-500/60 ring-1 ring-cyan-500/30 text-cyan-200"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
+                        ? "bg-teal-50 border-teal-500 ring-1 ring-teal-400 text-teal-900"
+                        : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    <div className="font-bold flex items-center gap-1.5 text-xs">
-                      <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                    <div className="font-bold flex items-center gap-1.5 text-xs text-teal-800">
+                      <Layers className="w-3.5 h-3.5 text-teal-600" />
                       <span>Volume Tier / Bulk</span>
                     </div>
-                    <span className="text-[10px] text-slate-400">အရေအတွက်များလျှင် လက်ကားဈေးပေးခြင်း</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormRuleType("REGIONAL_INDEX");
-                      setFormAdjustmentType("PERCENTAGE");
-                    }}
-                    className={`p-2.5 rounded-xl border text-left flex flex-col gap-1 transition-all ${
-                      formRuleType === "REGIONAL_INDEX"
-                        ? "bg-blue-950/40 border-blue-500/60 ring-1 ring-blue-500/30 text-blue-200"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
-                    }`}
-                  >
-                    <div className="font-bold flex items-center gap-1.5 text-xs">
-                      <MapPin className="w-3.5 h-3.5 text-blue-400" />
-                      <span>Regional Markup</span>
-                    </div>
-                    <span className="text-[10px] text-slate-400">သယ်ယူပို့ဆောင်ခ ဒေသအလိုက် ဈေးနှုန်းတိုးခြင်း</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormRuleType("CLEARANCE_AGING");
-                      setFormAdjustmentType("PERCENTAGE");
-                    }}
-                    className={`p-2.5 rounded-xl border text-left flex flex-col gap-1 transition-all ${
-                      formRuleType === "CLEARANCE_AGING"
-                        ? "bg-rose-950/40 border-rose-500/60 ring-1 ring-rose-500/30 text-rose-200"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
-                    }`}
-                  >
-                    <div className="font-bold flex items-center gap-1.5 text-xs">
-                      <Zap className="w-3.5 h-3.5 text-rose-400" />
-                      <span>Clearance Aging</span>
-                    </div>
-                    <span className="text-[10px] text-slate-400">ရက်ကြာပစ္စည်းများ အမြန်ရှင်း လျှော့ဈေး</span>
+                    <span className="text-[10px] text-slate-500">အရေအတွက်များလျှင် လက်ကားဈေးပေးခြင်း</span>
                   </button>
                 </div>
               </div>
 
               {/* 3. Conditional Parameters based on Type */}
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-3">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
                 {/* DATE_RANGE Fields */}
                 {formRuleType === "DATE_RANGE" && (
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-slate-400 mb-1 text-[11px]">
+                        <label className="block text-slate-600 mb-1 text-[11px] font-medium">
                           {language === "my" ? "စတင်မည့် ရက် (Start Date):" : "Start Date:"}
                         </label>
                         <input
                           type="date"
                           value={formStartDate}
                           onChange={(e) => setFormStartDate(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 font-mono focus:outline-none"
+                          className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-900 font-mono focus:outline-none focus:border-emerald-500 font-medium"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-slate-400 mb-1 text-[11px]">
+                        <label className="block text-slate-600 mb-1 text-[11px] font-medium">
                           {language === "my" ? "ပြီးဆုံးမည့် ရက် (End Date):" : "End Date:"}
                         </label>
                         <input
                           type="date"
                           value={formEndDate}
                           onChange={(e) => setFormEndDate(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 font-mono focus:outline-none"
+                          className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-900 font-mono focus:outline-none focus:border-emerald-500 font-medium"
                           required
                         />
                       </div>
                     </div>
 
-                    {/* Quick Date Presets */}
-                    <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar pb-0.5">
-                      {[
-                        {
-                          label: "Next 7 Days",
-                          days: 7,
-                        },
-                        {
-                          label: "Next 14 Days",
-                          days: 14,
-                        },
-                        {
-                          label: "Next 30 Days",
-                          days: 30,
-                        },
-                      ].map((preset) => (
-                        <button
-                          key={preset.label}
-                          type="button"
-                          onClick={() => {
-                            const today = new Date().toISOString().split("T")[0];
-                            const future = new Date();
-                            future.setDate(future.getDate() + preset.days);
-                            setFormStartDate(today);
-                            setFormEndDate(future.toISOString().split("T")[0]);
-                          }}
-                          className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Minimum Units Requirement for this Date Promo */}
-                    <div className="space-y-1.5 pt-1 border-t border-slate-850">
+                    {/* Minimum Units Requirement */}
+                    <div className="space-y-1.5 pt-1 border-t border-slate-200">
                       <div className="flex items-center justify-between">
-                        <label className="text-slate-400 text-[11px] font-medium">
+                        <label className="text-slate-600 text-[11px] font-medium">
                           {language === "my"
                             ? "အနည်းဆုံး ဝယ်ယူရမည့် အရေအတွက် (Min Quantity):"
                             : "Min Units Threshold:"}
                         </label>
-                        <span className="text-emerald-400 font-mono text-[10px] font-semibold">
+                        <span className="text-emerald-700 font-mono text-[10px] font-semibold">
                           ≥ {formMinUnits} {formMinUnits > 1 ? "units" : "unit"}
                         </span>
                       </div>
@@ -1305,7 +1113,7 @@ export const DynamicPricingView: React.FC = () => {
                           onClick={() =>
                             setFormMinUnitsStr(String(Math.max(1, (parseInt(formMinUnitsStr) || 1) - 1)))
                           }
-                          className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold"
+                          className="w-8 h-8 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold"
                         >
                           -
                         </button>
@@ -1317,31 +1125,15 @@ export const DynamicPricingView: React.FC = () => {
                           onChange={(e) => setFormMinUnitsStr(e.target.value)}
                           onFocus={(e) => e.target.select()}
                           placeholder="e.g. 1, 2, 5..."
-                          className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 font-mono font-bold text-center focus:outline-none"
+                          className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-900 font-mono font-bold text-center focus:outline-none focus:border-emerald-500"
                         />
                         <button
                           type="button"
                           onClick={() => setFormMinUnitsStr(String((parseInt(formMinUnitsStr) || 0) + 1))}
-                          className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold"
+                          className="w-8 h-8 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold"
                         >
                           +
                         </button>
-                      </div>
-                      <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar pt-0.5">
-                        {[1, 2, 3, 5, 10, 20].map((u) => (
-                          <button
-                            key={u}
-                            type="button"
-                            onClick={() => setFormMinUnitsStr(String(u))}
-                            className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors shrink-0 ${
-                              formMinUnits === u
-                                ? "bg-emerald-600 text-white border-emerald-500"
-                                : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
-                            }`}
-                          >
-                            {u} {u > 1 ? "units" : "unit"}
-                          </button>
-                        ))}
                       </div>
                     </div>
                   </div>
@@ -1350,316 +1142,57 @@ export const DynamicPricingView: React.FC = () => {
                 {/* SPEND_CASHBACK Fields */}
                 {formRuleType === "SPEND_CASHBACK" && (
                   <div className="space-y-3">
-                    {/* Minimum Spend Amount (ငွေအမောက် ဘယ်လောက်ဖိုးဝယ်ရင်) */}
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <label className="text-slate-400 text-[11px] font-medium">
+                        <label className="text-slate-600 text-[11px] font-medium">
                           {language === "my"
                             ? "အနည်းဆုံး ဝယ်ယူရမည့် ငွေပမာဏ (Minimum Spend Amount in MMK):"
                             : "Minimum Spend Amount (MMK):"}
                         </label>
-                        <span className="text-amber-400 font-mono text-[10px] font-semibold">
+                        <span className="text-amber-700 font-mono text-[10px] font-semibold">
                           ≥ {formatCurrency(formMinSpend, currency, language)}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-1.5">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormMinSpendStr(String(Math.max(0, (parseFloat(formMinSpendStr) || 0) - 50000)))
-                          }
-                          className="px-2.5 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold"
-                        >
-                          -50k
-                        </button>
-                        <input
-                          type="number"
-                          step="1000"
-                          min="0"
-                          inputMode="numeric"
-                          value={formMinSpendStr}
-                          onChange={(e) => setFormMinSpendStr(e.target.value)}
-                          onFocus={(e) => e.target.select()}
-                          placeholder="e.g. 500000"
-                          className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 font-mono font-bold text-center focus:outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormMinSpendStr(String((parseFloat(formMinSpendStr) || 0) + 50000))
-                          }
-                          className="px-2.5 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold"
-                        >
-                          +50k
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormMinSpendStr(String((parseFloat(formMinSpendStr) || 0) + 100000))
-                          }
-                          className="px-2.5 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold text-[10px]"
-                        >
-                          +100k
-                        </button>
-                      </div>
-
-                      {/* Quick Spend Chips */}
-                      <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar pt-0.5">
-                        {[50000, 100000, 200000, 300000, 500000, 1000000, 2000000].map((spend) => (
-                          <button
-                            key={spend}
-                            type="button"
-                            onClick={() => setFormMinSpendStr(String(spend))}
-                            className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors shrink-0 ${
-                              formMinSpend === spend
-                                ? "bg-amber-600 text-white border-amber-500"
-                                : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
-                            }`}
-                          >
-                            {formatCurrency(spend, currency, language)}
-                          </button>
-                        ))}
-                      </div>
+                      <input
+                        type="number"
+                        step="1000"
+                        min="0"
+                        inputMode="numeric"
+                        value={formMinSpendStr}
+                        onChange={(e) => setFormMinSpendStr(e.target.value)}
+                        placeholder="e.g. 500000"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-900 font-mono font-bold text-center focus:outline-none focus:border-emerald-500"
+                      />
                     </div>
 
-                    {/* Cashback Reward Amount (Cash back amount ဘယ်လောက်ပေးမယ်) */}
-                    <div className="space-y-1.5 pt-1 border-t border-slate-850">
+                    <div className="space-y-1.5 pt-1 border-t border-slate-200">
                       <div className="flex items-center justify-between">
-                        <label className="text-slate-400 text-[11px] font-medium">
+                        <label className="text-slate-600 text-[11px] font-medium">
                           {language === "my"
                             ? "ပေးမည့် Cash Back Amount (Cashback / Direct Cash Discount in MMK):"
                             : "Cashback Reward Amount (MMK):"}
                         </label>
-                        <span className="text-emerald-400 font-mono text-[10px] font-semibold">
+                        <span className="text-emerald-700 font-mono text-[10px] font-semibold">
                           -{formatCurrency(formCashbackAmount, currency, language)}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-1.5">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormCashbackAmountStr(String(Math.max(0, (parseFloat(formCashbackAmountStr) || 0) - 5000)))
-                          }
-                          className="px-2.5 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold"
-                        >
-                          -5k
-                        </button>
-                        <input
-                          type="number"
-                          step="1000"
-                          min="0"
-                          inputMode="numeric"
-                          value={formCashbackAmountStr}
-                          onChange={(e) => setFormCashbackAmountStr(e.target.value)}
-                          onFocus={(e) => e.target.select()}
-                          placeholder="e.g. 25000"
-                          className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 font-mono font-bold text-center focus:outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormCashbackAmountStr(String((parseFloat(formCashbackAmountStr) || 0) + 5000))
-                          }
-                          className="px-2.5 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold"
-                        >
-                          +5k
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormCashbackAmountStr(String((parseFloat(formCashbackAmountStr) || 0) + 10000))
-                          }
-                          className="px-2.5 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold text-[10px]"
-                        >
-                          +10k
-                        </button>
-                      </div>
-
-                      {/* Quick Cashback Chips */}
-                      <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar pt-0.5">
-                        {[5000, 10000, 20000, 25000, 50000, 100000].map((cb) => (
-                          <button
-                            key={cb}
-                            type="button"
-                            onClick={() => setFormCashbackAmountStr(String(cb))}
-                            className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors shrink-0 ${
-                              formCashbackAmount === cb
-                                ? "bg-emerald-600 text-white border-emerald-500"
-                                : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
-                            }`}
-                          >
-                            {formatCurrency(cb, currency, language)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* TIME_WINDOW Fields */}
-                {formRuleType === "TIME_WINDOW" && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-slate-400 mb-1 text-[11px]">Start Time (စတင်ချိန်):</label>
-                      <input
-                        type="time"
-                        value={formStartTime}
-                        onChange={(e) => setFormStartTime(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 font-mono focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-400 mb-1 text-[11px]">End Time (ပြီးဆုံးချိန်):</label>
-                      <input
-                        type="time"
-                        value={formEndTime}
-                        onChange={(e) => setFormEndTime(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 font-mono focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* VOLUME_TIER Fields */}
-                {formRuleType === "VOLUME_TIER" && (
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-slate-400 text-[11px] font-medium">
-                        Minimum Purchase Units (အနည်းဆုံး ဝယ်ယူရမည့် အရေအတွက်):
-                      </label>
-                      <span className="text-cyan-400 font-mono text-[10px] font-semibold">
-                        ≥ {formMinUnits} units
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setFormMinUnitsStr(String(Math.max(1, (parseInt(formMinUnitsStr) || 1) - 1)))
-                        }
-                        className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold"
-                      >
-                        -
-                      </button>
                       <input
                         type="number"
-                        min="1"
+                        step="1000"
+                        min="0"
                         inputMode="numeric"
-                        value={formMinUnitsStr}
-                        onChange={(e) => setFormMinUnitsStr(e.target.value)}
-                        onFocus={(e) => e.target.select()}
-                        placeholder="e.g. 5, 10, 50..."
-                        className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 font-mono font-bold text-center focus:outline-none"
+                        value={formCashbackAmountStr}
+                        onChange={(e) => setFormCashbackAmountStr(e.target.value)}
+                        placeholder="e.g. 25000"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-900 font-mono font-bold text-center focus:outline-none focus:border-emerald-500"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setFormMinUnitsStr(String((parseInt(formMinUnitsStr) || 0) + 1))}
-                        className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar pt-0.5">
-                      {[2, 3, 5, 10, 20, 50, 100].map((u) => (
-                        <button
-                          key={u}
-                          type="button"
-                          onClick={() => setFormMinUnitsStr(String(u))}
-                          className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors shrink-0 ${
-                            formMinUnits === u
-                              ? "bg-cyan-600 text-white border-cyan-500"
-                              : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
-                          }`}
-                        >
-                          {u} units
-                        </button>
-                      ))}
                     </div>
                   </div>
                 )}
 
-                {/* REGIONAL_INDEX Fields */}
-                {formRuleType === "REGIONAL_INDEX" && (
-                  <div>
-                    <label className="block text-slate-400 mb-1 text-[11px]">Target Branch (သက်ဆိုင်ရာ ဆိုင်):</label>
-                    <select
-                      value={formBranchId}
-                      onChange={(e) => setFormBranchId(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none"
-                    >
-                      <option value="ALL">All Branches (Global)</option>
-                      {branches.map((b) => (
-                        <option key={b.id} value={b.id}>
-                          {language === "my" ? b.nameMy : b.name} ({b.code})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* CLEARANCE_AGING Fields */}
-                {formRuleType === "CLEARANCE_AGING" && (
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-slate-400 text-[11px] font-medium">
-                        Stock Aging Threshold Days (သိုလှောင်သက်တမ်း ရက်):
-                      </label>
-                      <span className="text-rose-400 font-mono text-[10px] font-semibold">
-                        &gt; {formAgingDays} days
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setFormAgingDaysStr(String(Math.max(1, (parseInt(formAgingDaysStr) || 30) - 10)))
-                        }
-                        className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold"
-                      >
-                        -
-                      </button>
-                      <input
-                        type="number"
-                        min="1"
-                        inputMode="numeric"
-                        value={formAgingDaysStr}
-                        onChange={(e) => setFormAgingDaysStr(e.target.value)}
-                        onFocus={(e) => e.target.select()}
-                        placeholder="e.g. 90, 180..."
-                        className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 font-mono font-bold text-center focus:outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setFormAgingDaysStr(String((parseInt(formAgingDaysStr) || 0) + 10))}
-                        className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 font-bold"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-1 pt-0.5">
-                      {[30, 60, 90, 180, 365].map((d) => (
-                        <button
-                          key={d}
-                          type="button"
-                          onClick={() => setFormAgingDaysStr(String(d))}
-                          className={`flex-1 py-0.5 rounded text-[10px] font-mono border transition-colors ${
-                            formAgingDays === d
-                              ? "bg-rose-600 text-white border-rose-500"
-                              : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
-                          }`}
-                        >
-                          {d}d
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Target Category (All Categories / ALL Price Category or Specific) */}
+                {/* Target Category */}
                 <div>
-                  <label className="block text-slate-400 mb-1 text-[11px]">
+                  <label className="block text-slate-600 mb-1 text-[11px] font-medium">
                     {language === "my"
                       ? "အကျုံးဝင်မည့် ပစ္စည်း အမျိုးအစား (Target Product Category):"
                       : "Target Product Category (ALL Price Category or Specific):"}
@@ -1667,7 +1200,7 @@ export const DynamicPricingView: React.FC = () => {
                   <select
                     value={formTargetCategory}
                     onChange={(e) => setFormTargetCategory(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-900 focus:outline-none focus:border-emerald-500 font-medium"
                   >
                     {productCategories.map((cat) => (
                       <option key={cat} value={cat}>
@@ -1678,23 +1211,23 @@ export const DynamicPricingView: React.FC = () => {
                 </div>
               </div>
 
-              {/* 4. Price Adjustment Type & Values (Only if not SPEND_CASHBACK or if choosing between % and Fixed) */}
+              {/* 4. Price Adjustment Type & Values */}
               {formRuleType !== "SPEND_CASHBACK" && (
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1.5">
+                  <label className="block text-slate-700 font-semibold mb-1.5">
                     {language === "my"
                       ? "ဈေးနှုန်း လျှော့ချမှု / တိုးမြှင့်မှု (Price Adjustment %)"
                       : "Price Adjustment (% Percentage)"}
                   </label>
                   <div className="flex items-center space-x-2">
-                    <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                       <button
                         type="button"
                         onClick={() => setFormAdjustmentMode("DISCOUNT")}
                         className={`px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1 transition-colors ${
                           formAdjustmentMode === "DISCOUNT"
-                            ? "bg-emerald-600 text-white shadow-sm"
-                            : "text-slate-400 hover:text-slate-200"
+                            ? "bg-emerald-600 text-white shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
                         }`}
                       >
                         <TrendingDown className="w-3.5 h-3.5" />
@@ -1705,8 +1238,8 @@ export const DynamicPricingView: React.FC = () => {
                         onClick={() => setFormAdjustmentMode("MARKUP")}
                         className={`px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1 transition-colors ${
                           formAdjustmentMode === "MARKUP"
-                            ? "bg-amber-600 text-white shadow-sm"
-                            : "text-slate-400 hover:text-slate-200"
+                            ? "bg-amber-600 text-white shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
                         }`}
                       >
                         <TrendingUp className="w-3.5 h-3.5" />
@@ -1714,7 +1247,6 @@ export const DynamicPricingView: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* Input with free typing */}
                     <div className="relative flex-1">
                       <input
                         type="number"
@@ -1726,48 +1258,10 @@ export const DynamicPricingView: React.FC = () => {
                         onChange={(e) => setFormAdjustmentPercentStr(e.target.value)}
                         onFocus={(e) => e.target.select()}
                         placeholder="e.g. 10, 12, 15..."
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono font-bold text-center focus:outline-none focus:border-indigo-500 pr-8"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold text-center focus:outline-none focus:border-emerald-500 pr-8"
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">%</span>
                     </div>
-                  </div>
-
-                  {/* Quick Preset Buttons & Steppers */}
-                  <div className="flex items-center gap-1 mt-2 overflow-x-auto custom-scrollbar pb-0.5">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFormAdjustmentPercentStr(String(Math.max(0, (parseFloat(formAdjustmentPercentStr) || 0) - 1)))
-                      }
-                      className="px-2 py-1 rounded text-[10px] font-mono font-semibold bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
-                    >
-                      -1%
-                    </button>
-                    {[5, 8, 10, 12, 15, 20, 25, 30, 50].map((pct) => (
-                      <button
-                        key={pct}
-                        type="button"
-                        onClick={() => setFormAdjustmentPercentStr(String(pct))}
-                        className={`flex-1 py-1 rounded text-[11px] font-mono font-semibold border transition-colors shrink-0 ${
-                          formAdjustmentPercent === pct
-                            ? formAdjustmentMode === "DISCOUNT"
-                              ? "bg-emerald-600 text-white border-emerald-500"
-                              : "bg-amber-600 text-white border-amber-500"
-                            : "bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200"
-                        }`}
-                      >
-                        {formAdjustmentMode === "DISCOUNT" ? `-${pct}%` : `+${pct}%`}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFormAdjustmentPercentStr(String(Math.min(100, (parseFloat(formAdjustmentPercentStr) || 0) + 1)))
-                      }
-                      className="px-2 py-1 rounded text-[10px] font-mono font-semibold bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
-                    >
-                      +1%
-                    </button>
                   </div>
                 </div>
               )}
@@ -1796,19 +1290,17 @@ export const DynamicPricingView: React.FC = () => {
                   diff = adjPrice - basePrice;
                 }
 
-                const totalTierSum = adjPrice * minUnits;
-
                 return (
-                  <div className="bg-slate-950/90 p-3 rounded-xl border border-indigo-900/40 space-y-2">
+                  <div className="bg-emerald-50/50 p-3 rounded-xl border border-emerald-200 space-y-2">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-indigo-300 font-bold flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-indigo-400" />
+                      <span className="text-emerald-800 font-bold flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-emerald-600" />
                         <span>Live Calculation Preview on Sample Item:</span>
                       </span>
                       <select
                         value={formSampleProductId}
                         onChange={(e) => setFormSampleProductId(e.target.value)}
-                        className="bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none"
+                        className="bg-white border border-slate-300 rounded px-1.5 py-0.5 text-[10px] text-slate-800 focus:outline-none"
                       >
                         {products.slice(0, 8).map((p) => (
                           <option key={p.id} value={p.id}>
@@ -1818,10 +1310,10 @@ export const DynamicPricingView: React.FC = () => {
                       </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-[11px] font-mono bg-slate-900 p-2 rounded-lg border border-slate-800">
+                    <div className="grid grid-cols-2 gap-2 text-[11px] font-mono bg-white p-2 rounded-lg border border-slate-200">
                       <div>
                         <div className="text-slate-500 text-[10px]">Original Unit Price</div>
-                        <div className="text-slate-300 font-semibold">{formatCurrency(basePrice, currency, language)}</div>
+                        <div className="text-slate-900 font-semibold">{formatCurrency(basePrice, currency, language)}</div>
                       </div>
                       <div>
                         <div className="text-slate-500 text-[10px]">
@@ -1831,26 +1323,8 @@ export const DynamicPricingView: React.FC = () => {
                             ? "Calculated Discounted Price"
                             : "Calculated Markup Price"}
                         </div>
-                        <div className="text-emerald-400 font-bold text-xs">{formatCurrency(adjPrice, currency, language)}</div>
+                        <div className="text-emerald-700 font-bold text-xs">{formatCurrency(adjPrice, currency, language)}</div>
                       </div>
-                    </div>
-
-                    <div className="text-[10px] text-slate-400 flex items-center justify-between">
-                      <span>
-                        Rule Impact:{" "}
-                        <span className={diff <= 0 ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
-                          {formRuleType === "SPEND_CASHBACK"
-                            ? `Cashback Reward: -${formatCurrency(formCashbackAmount, currency, language)} (When spend ≥ ${formatCurrency(formMinSpend, currency, language)})`
-                            : diff < 0
-                            ? `- ${formatCurrency(Math.abs(diff), currency, language)} (${formAdjustmentPercent}%)`
-                            : `+ ${formatCurrency(diff, currency, language)} (+${formAdjustmentPercent}%)`}
-                        </span>
-                      </span>
-                      {minUnits > 1 && (
-                        <span className="font-mono text-slate-300">
-                          {minUnits} units total: <strong className="text-amber-400">{formatCurrency(totalTierSum, currency, language)}</strong>
-                        </span>
-                      )}
                     </div>
                   </div>
                 );
@@ -1858,7 +1332,7 @@ export const DynamicPricingView: React.FC = () => {
 
               {/* 5. Description / Notes */}
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-700 font-semibold mb-1">
                   {language === "my" ? "ရှင်းလင်းချက် မှတ်ချက် (Description / Notes)" : "Description / Notes"}
                 </label>
                 <textarea
@@ -1866,14 +1340,14 @@ export const DynamicPricingView: React.FC = () => {
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
                   placeholder="Optional internal note for cashiers and audit trail..."
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500 text-xs"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 text-xs font-medium"
                 />
               </div>
 
               {/* 6. Active Status Switch */}
-              <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
+              <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div>
-                  <div className="font-semibold text-slate-200 text-xs">
+                  <div className="font-semibold text-slate-900 text-xs">
                     {language === "my" ? "စည်းမျဉ်းကို ချက်ချင်း အသက်သွင်းမည်" : "Enable Rule Immediately"}
                   </div>
                   <div className="text-[11px] text-slate-500">Active rules apply automatically during POS sales</div>
@@ -1882,22 +1356,22 @@ export const DynamicPricingView: React.FC = () => {
                   type="checkbox"
                   checked={formActive}
                   onChange={(e) => setFormActive(e.target.checked)}
-                  className="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 focus:ring-indigo-500"
+                  className="w-4 h-4 rounded text-emerald-600 bg-white border-slate-300 focus:ring-emerald-500"
                 />
               </div>
 
               {/* Modal Buttons */}
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors"
                 >
                   {language === "my" ? "ပယ်ဖျက်မည်" : "Cancel"}
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-gradient-to-r from-amber-600 to-indigo-600 hover:from-amber-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-md transition-all hover:scale-[1.02]"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-xs transition-all hover:scale-[1.02]"
                 >
                   {editingRuleId
                     ? language === "my"

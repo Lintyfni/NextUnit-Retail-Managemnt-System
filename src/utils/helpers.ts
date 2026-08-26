@@ -76,7 +76,7 @@ export function exportToCSV(filename: string, rows: Record<string, any>[]) {
 export const DICTIONARY = {
   en: {
     // Navigation
-    appName: "OmniChain Enterprise",
+    appName: "NextUnit Tech",
     hqControl: "HQ Control Panel",
     branches: "Branch & Stores",
     posBilling: "POS Billing & Sales",
@@ -120,7 +120,7 @@ export const DICTIONARY = {
   },
   my: {
     // Navigation
-    appName: "OmniChain စီးပွားရေးစီမံခန့်ခွဲမှုစနစ်",
+    appName: "NextUnit Tech လက်လီအရောင်းနှင့် စီမံခန့်ခွဲမှုစနစ်",
     hqControl: "HQ ပင်မထိန်းချုပ်ခန်း",
     branches: "ဆိုင်ခွဲများနှင့် စတိုးများ",
     posBilling: "POS အရောင်းနှင့် ပြန်သွင်း",

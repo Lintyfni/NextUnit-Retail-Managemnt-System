@@ -678,10 +678,11 @@ export const INITIAL_STOCK_TRANSFERS: StockTransfer[] = [
     ],
     requestedBy: "Daw Thandar Win (MDY Manager)",
     dispatchedAt: "2026-08-20T11:00:00Z",
+    receivedAt: "2026-08-20T17:00:00Z",
     driverName: "U Aung Gyi",
     vehicleNumber: "YGN 4K-9921 (Fleet Van 02)",
-    status: "IN_TRANSIT",
-    notes: "Urgent replenishment for MDY tech festival promotion weekend.",
+    status: "RECEIVED",
+    notes: "Urgent replenishment for MDY tech festival promotion weekend completed.",
   },
   {
     id: "TRF-2608-018",

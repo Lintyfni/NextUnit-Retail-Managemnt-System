@@ -976,60 +976,239 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog("INSPECTED_GRN", "INVENTORY", `Processed GRN ${newGRN.grnNumber} for PO ${grnData.poNumber}.`);
   };
 
-  // Stock Transfer
+  // Stock Transfer Engine
   const createStockTransfer = (transferData: Omit<StockTransfer, "id" | "transferNumber">) => {
+    const isDirectReceive = transferData.status === "RECEIVED";
+    const isInTransit = transferData.status === "IN_TRANSIT";
+
     const newTransfer: StockTransfer = {
       ...transferData,
       id: `TRF-${Date.now().toString().slice(-4)}`,
-      transferNumber: `TRF-${Date.now().toString().slice(-6)}`,
+      transferNumber: `TRF-${new Date().toISOString().slice(2, 4)}${String(new Date().getMonth() + 1).padStart(2, "0")}-${Math.floor(100 + Math.random() * 900)}`,
+      dispatchedAt: isInTransit || isDirectReceive ? new Date().toISOString() : transferData.dispatchedAt,
+      receivedAt: isDirectReceive ? new Date().toISOString() : transferData.receivedAt,
     };
+
+    // If Direct Transfer (RECEIVED): Deduct from source branch AND Add to destination branch immediately
+    if (isDirectReceive) {
+      setProducts((pList) =>
+        pList.map((prod) => {
+          const item = transferData.items.find((i) => i.productId === prod.id);
+          if (item) {
+            const fromQty = prod.branchStock[transferData.fromBranchId] || 0;
+            const toQty = prod.branchStock[transferData.toBranchId] || 0;
+            return {
+              ...prod,
+              branchStock: {
+                ...prod.branchStock,
+                [transferData.fromBranchId]: Math.max(0, fromQty - item.quantity),
+                [transferData.toBranchId]: toQty + item.quantity,
+              },
+            };
+          }
+          return prod;
+        })
+      );
+      addAuditLog(
+        "RECEIVED_STOCK_TRANSFER",
+        "INVENTORY",
+        `Direct Transfer Completed ${newTransfer.transferNumber}: Transferred ${transferData.items.map(i => `${i.productName} (${i.quantity})`).join(", ")} from ${newTransfer.fromBranchName} to ${newTransfer.toBranchName}. Total stock balanced.`
+      );
+    } else if (isInTransit) {
+      // If created directly in dispatched / in-transit state, immediately deduct from source branch
+      setProducts((pList) =>
+        pList.map((prod) => {
+          const item = transferData.items.find((i) => i.productId === prod.id);
+          if (item) {
+            const fromQty = prod.branchStock[transferData.fromBranchId] || 0;
+            return {
+              ...prod,
+              branchStock: {
+                ...prod.branchStock,
+                [transferData.fromBranchId]: Math.max(0, fromQty - item.quantity),
+              },
+            };
+          }
+          return prod;
+        })
+      );
+      addAuditLog(
+        "DISPATCHED_STOCK_TRANSFER",
+        "INVENTORY",
+        `Dispatched transfer ${newTransfer.transferNumber} from ${newTransfer.fromBranchName} to ${newTransfer.toBranchName} (${transferData.items.map(i => `${i.productName}: ${i.quantity}`).join(", ")})`
+      );
+    } else {
+      addAuditLog(
+        "REQUESTED_STOCK_TRANSFER",
+        "INVENTORY",
+        `Created transfer request ${newTransfer.transferNumber} from ${newTransfer.fromBranchName} to ${newTransfer.toBranchName}`
+      );
+    }
+
     setStockTransfers((prev) => [newTransfer, ...prev]);
-    addAuditLog("REQUESTED_STOCK_TRANSFER", "INVENTORY", `Created transfer request from ${newTransfer.fromBranchName} to ${newTransfer.toBranchName}`);
   };
 
-  const updateStockTransferStatus = (id: string, status: StockTransfer["status"]) => {
+  const updateStockTransferStatus = (id: string, newStatus: StockTransfer["status"]) => {
+    const targetTransfer = stockTransfers.find((t) => t.id === id);
+    if (!targetTransfer) return;
+
+    const oldStatus = targetTransfer.status;
+    if (oldStatus === newStatus) return;
+
+    // Case 1: DISPATCH (REQUESTED/PENDING -> IN_TRANSIT)
+    // Deduct stock from source branch/warehouse ONLY. Destination is untouched.
+    if ((oldStatus === "REQUESTED" || oldStatus === "PENDING") && newStatus === "IN_TRANSIT") {
+      setProducts((pList) =>
+        pList.map((prod) => {
+          const item = targetTransfer.items.find((i) => i.productId === prod.id);
+          if (item) {
+            const fromQty = prod.branchStock[targetTransfer.fromBranchId] || 0;
+            return {
+              ...prod,
+              branchStock: {
+                ...prod.branchStock,
+                [targetTransfer.fromBranchId]: Math.max(0, fromQty - item.quantity),
+              },
+            };
+          }
+          return prod;
+        })
+      );
+      addAuditLog(
+        "DISPATCHED_STOCK_TRANSFER",
+        "INVENTORY",
+        `Dispatched ${targetTransfer.transferNumber}: Deducted items from ${targetTransfer.fromBranchName} (In Transit to ${targetTransfer.toBranchName})`
+      );
+    }
+
+    // Case 2: RECEIVE & RESTOCK (IN_TRANSIT -> RECEIVED)
+    // Add stock to destination branch ONLY (source was already deducted during dispatch).
+    else if (oldStatus === "IN_TRANSIT" && newStatus === "RECEIVED") {
+      setProducts((pList) =>
+        pList.map((prod) => {
+          const item = targetTransfer.items.find((i) => i.productId === prod.id);
+          if (item) {
+            const toQty = prod.branchStock[targetTransfer.toBranchId] || 0;
+            return {
+              ...prod,
+              branchStock: {
+                ...prod.branchStock,
+                [targetTransfer.toBranchId]: toQty + item.quantity,
+              },
+            };
+          }
+          return prod;
+        })
+      );
+      addAuditLog(
+        "RECEIVED_STOCK_TRANSFER",
+        "INVENTORY",
+        `Received & Restocked ${targetTransfer.transferNumber}: Added items to ${targetTransfer.toBranchName}`
+      );
+    }
+
+    // Case 3: DIRECT IMMEDIATE RECEIPT (REQUESTED/PENDING -> RECEIVED)
+    // Deduct from source AND Add to destination simultaneously (1 step)
+    else if ((oldStatus === "REQUESTED" || oldStatus === "PENDING") && newStatus === "RECEIVED") {
+      setProducts((pList) =>
+        pList.map((prod) => {
+          const item = targetTransfer.items.find((i) => i.productId === prod.id);
+          if (item) {
+            const fromQty = prod.branchStock[targetTransfer.fromBranchId] || 0;
+            const toQty = prod.branchStock[targetTransfer.toBranchId] || 0;
+            return {
+              ...prod,
+              branchStock: {
+                ...prod.branchStock,
+                [targetTransfer.fromBranchId]: Math.max(0, fromQty - item.quantity),
+                [targetTransfer.toBranchId]: toQty + item.quantity,
+              },
+            };
+          }
+          return prod;
+        })
+      );
+      addAuditLog(
+        "RECEIVED_STOCK_TRANSFER",
+        "INVENTORY",
+        `Direct Transfer Completed ${targetTransfer.transferNumber}: Moved from ${targetTransfer.fromBranchName} to ${targetTransfer.toBranchName}`
+      );
+    }
+
+    // Case 4: CANCEL IN-TRANSIT (IN_TRANSIT -> CANCELLED)
+    // Refund / restore stock back to source branch
+    else if (oldStatus === "IN_TRANSIT" && newStatus === "CANCELLED") {
+      setProducts((pList) =>
+        pList.map((prod) => {
+          const item = targetTransfer.items.find((i) => i.productId === prod.id);
+          if (item) {
+            const fromQty = prod.branchStock[targetTransfer.fromBranchId] || 0;
+            return {
+              ...prod,
+              branchStock: {
+                ...prod.branchStock,
+                [targetTransfer.fromBranchId]: fromQty + item.quantity,
+              },
+            };
+          }
+          return prod;
+        })
+      );
+      addAuditLog(
+        "CANCELLED_STOCK_TRANSFER",
+        "INVENTORY",
+        `Cancelled in-transit transfer ${targetTransfer.transferNumber}: Returned items back to ${targetTransfer.fromBranchName}`,
+        "MEDIUM"
+      );
+    }
+
+    // Case 5: CANCEL PENDING (REQUESTED/PENDING -> CANCELLED)
+    else if ((oldStatus === "REQUESTED" || oldStatus === "PENDING") && newStatus === "CANCELLED") {
+      addAuditLog(
+        "CANCELLED_STOCK_TRANSFER",
+        "INVENTORY",
+        `Cancelled pending transfer request ${targetTransfer.transferNumber}`
+      );
+    }
+
+    // Purely update the stock transfer record status
     setStockTransfers((prev) =>
       prev.map((t) => {
-        if (t.id === id) {
-          // If receiving, adjust inventory
-          if (status === "RECEIVED" && t.status !== "RECEIVED") {
-            setProducts((pList) =>
-              pList.map((prod) => {
-                const item = t.items.find((i) => i.productId === prod.id);
-                if (item) {
-                  const fromQty = prod.branchStock[t.fromBranchId] || 0;
-                  const toQty = prod.branchStock[t.toBranchId] || 0;
-                  return {
-                    ...prod,
-                    branchStock: {
-                      ...prod.branchStock,
-                      [t.fromBranchId]: Math.max(0, fromQty - item.quantity),
-                      [t.toBranchId]: toQty + item.quantity,
-                    },
-                  };
-                }
-                return prod;
-              })
-            );
-          }
-          return {
-            ...t,
-            status,
-            receivedAt: status === "RECEIVED" ? new Date().toISOString() : t.receivedAt,
-          };
-        }
-        return t;
+        if (t.id !== id) return t;
+        return {
+          ...t,
+          status: newStatus,
+          dispatchedAt:
+            newStatus === "IN_TRANSIT" || (newStatus === "RECEIVED" && !t.dispatchedAt)
+              ? t.dispatchedAt || new Date().toISOString()
+              : t.dispatchedAt,
+          receivedAt: newStatus === "RECEIVED" ? new Date().toISOString() : t.receivedAt,
+        };
       })
     );
   };
 
-  // Stock Adjustment
-  const createStockAdjustment = (adjData: Omit<StockAdjustment, "id" | "adjustmentNumber" | "date">) => {
+  // Stock Adjustment (Cycle Counts & Discrepancies)
+  const createStockAdjustment = (adjData: any) => {
+    const adjustedStock = Number(adjData.adjustedStock ?? adjData.adjustedQuantity ?? 0);
+    const previousStock = Number(adjData.previousStock ?? adjData.previousQuantity ?? 0);
+    const difference = adjustedStock - previousStock;
+
     const newAdj: StockAdjustment = {
-      ...adjData,
       id: `ADJ-${Date.now().toString().slice(-4)}`,
-      adjustmentNumber: `ADJ-${Date.now().toString().slice(-6)}`,
+      adjustmentNumber: `ADJ-${new Date().toISOString().slice(2, 4)}${String(new Date().getMonth() + 1).padStart(2, "0")}-${Math.floor(100 + Math.random() * 900)}`,
+      branchId: adjData.branchId,
+      branchName: adjData.branchName,
+      productId: adjData.productId,
+      productName: adjData.productName,
+      sku: adjData.sku || "",
+      previousStock,
+      adjustedStock,
+      difference,
+      reason: adjData.reason || "CYCLE_COUNT",
+      adjustedBy: adjData.adjustedBy || currentUser.name,
       date: new Date().toISOString(),
+      approvedBy: adjData.approvedBy || `${currentUser.name} (Auditor)`,
     };
 
     setProducts((prev) =>
@@ -1039,7 +1218,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             ...prod,
             branchStock: {
               ...prod.branchStock,
-              [adjData.branchId]: adjData.adjustedStock,
+              [adjData.branchId]: Math.max(0, adjustedStock),
             },
           };
         }
@@ -1051,8 +1230,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog(
       "STOCK_ADJUSTMENT",
       "INVENTORY",
-      `Adjusted stock for ${adjData.productName} by ${adjData.difference > 0 ? "+" : ""}${adjData.difference} (Reason: ${adjData.reason})`,
-      "MEDIUM"
+      `Adjusted physical count for ${adjData.productName} at ${adjData.branchName} from ${previousStock} to ${adjustedStock} (Diff: ${difference > 0 ? "+" : ""}${difference}, Reason: ${adjData.reason})`,
+      Math.abs(difference) > 5 ? "FLAGGED" : "MEDIUM"
     );
   };
 
