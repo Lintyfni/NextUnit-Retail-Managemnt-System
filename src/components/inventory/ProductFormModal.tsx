@@ -1667,6 +1667,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
           )}
 
           {/* TAB 4: SERIAL & EXPIRED CODE TRACKING */}
+          {/* TAB 4: SERIAL & EXPIRED CODE ASSIGNMENT */}
           {activeTab === "SERIALS" && (
             <div className="space-y-4 animate-fade-in">
               {/* Toggle Has Serial / IMEI */}
@@ -1682,8 +1683,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   </span>
                   <p className="text-[11px] text-slate-500 mt-0.5">
                     {language === "my"
-                      ? "လက်ကျန်အရေအတွက်တစ်ခုချင်းစီတွင် Serial Number၊ Lot Code နှင့် သက်တမ်းကုန်ဆုံးရက် (Expiry Date) ခွဲခြားကပ်နိုင်ပါသည်"
-                      : "Track individual device serials, lot batches, warranty validation, and product shelf-life expiration"}
+                      ? "Yangon, MDY စသည့် ဆိုင်ခွဲအလိုက် လက်ကျန် Qty ပေါ်တွင် Barcode ဖတ်၍ Serial Number တွဲဆက်ခွဲကပ်နိုင်ပါသည်"
+                      : "Assign & scan barcode serials directly onto Yangon, MDY branch on-hand quantities with expiry tracking"}
                   </p>
                 </div>
                 <input
@@ -1696,22 +1697,139 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
               {hasIMEI && (
                 <div className="space-y-4">
-                  {/* Add New Serial Entry Box */}
+                  {/* Branch Stock & Assigned Progress Breakdown */}
+                  <div className="p-3.5 bg-blue-50/60 border border-blue-200 rounded-2xl space-y-2.5">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 text-xs">
+                      <div className="flex items-center space-x-2">
+                        <Building className="w-4 h-4 text-blue-700" />
+                        <span className="font-bold text-slate-800">
+                          {language === "my" ? "ဆိုင်ခွဲအလိုက် လက်ကျန်နှင့် Serial အခြေအနေ:" : "Branch Stock & Assigned Serials:"}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2 font-mono text-[11px]">
+                        <span className="text-slate-600">
+                          Total Stock: <b>{Object.values(branchStock).reduce<number>((a, b) => a + Number(b || 0), 0)} {uom}</b>
+                        </span>
+                        <span className="text-slate-300">|</span>
+                        <span className="text-blue-900 font-bold">
+                          Assigned: {serials.length} / {Object.values(branchStock).reduce<number>((a, b) => a + Number(b || 0), 0)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Branch Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                      {branches.map((b) => {
+                        const bStock = Number(branchStock[b.id] || 0);
+                        const bAssigned = serials.filter((s) => s.branchId === b.id).length;
+                        const bRemaining = bStock - bAssigned;
+                        const isSelected = newSerialBranch === b.id;
+                        const isBalanced = bAssigned === bStock && bStock > 0;
+
+                        return (
+                          <div
+                            key={b.id}
+                            onClick={() => setNewSerialBranch(b.id)}
+                            className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                              isSelected
+                                ? "bg-blue-600 text-white border-blue-700 shadow-xs ring-2 ring-blue-300"
+                                : "bg-white border-slate-200 hover:border-blue-300 hover:bg-blue-50/40"
+                            }`}
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <span className={`font-bold text-xs ${isSelected ? "text-white" : "text-slate-900"}`}>
+                                {b.name}
+                              </span>
+                              <span
+                                className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${
+                                  isSelected
+                                    ? "bg-white/20 text-white"
+                                    : isBalanced
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : bRemaining > 0
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-slate-100 text-slate-600"
+                                }`}
+                              >
+                                {isBalanced ? "✅ Balanced" : bRemaining > 0 ? `${bRemaining} Missing` : "Complete"}
+                              </span>
+                            </div>
+
+                            <div className="flex justify-between text-[11px] font-mono">
+                              <span className={isSelected ? "text-blue-100" : "text-slate-600"}>Stock: {bStock}</span>
+                              <span className={isSelected ? "text-white font-bold" : "text-blue-800 font-bold"}>
+                                Serials: {bAssigned}
+                              </span>
+                            </div>
+
+                            {/* Auto-fill button */}
+                            {bRemaining > 0 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const prefix = `SN-${(b.code || b.id).toUpperCase()}-`;
+                                  const newItems: SerialItem[] = [];
+                                  let cur = 1001;
+                                  for (let i = 0; i < bRemaining; i++) {
+                                    let cand = `${prefix}${String(cur + i).padStart(4, "0")}`;
+                                    while (serials.some((s) => s.serial === cand)) {
+                                      cur += 10;
+                                      cand = `${prefix}${String(cur + i).padStart(4, "0")}`;
+                                    }
+                                    newItems.push({
+                                      serial: cand,
+                                      branchId: b.id,
+                                      branchName: b.name,
+                                      status: "AVAILABLE",
+                                      expiryDate: newSerialExpiry || undefined,
+                                      lotNumber: newSerialLot || undefined,
+                                      createdAt: new Date().toISOString(),
+                                    });
+                                  }
+                                  setSerials((prev) => [...newItems, ...prev]);
+                                }}
+                                className={`mt-1.5 w-full py-0.5 rounded text-[10px] font-bold transition-colors ${
+                                  isSelected
+                                    ? "bg-white text-blue-800 hover:bg-blue-50"
+                                    : "bg-blue-100 hover:bg-blue-200 text-blue-800"
+                                }`}
+                              >
+                                + Auto-Fill {bRemaining} Serials
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Add New Serial Entry Box with Barcode Scan */}
                   <div className="bg-white border border-slate-200 p-4 rounded-2xl space-y-3 shadow-xs">
                     <div className="font-bold text-slate-900 text-xs flex items-center space-x-1.5">
-                      <Plus className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>{language === "my" ? "Serial & Expired Code အသစ်ထည့်သွင်းရန်" : "Add New Serial & Expiry Code"}</span>
+                      <Barcode className="w-4 h-4 text-blue-600" />
+                      <span>
+                        {language === "my"
+                          ? "Barcode ဖတ် / ရိုက်ထည့်၍ Serial & Expired Code သတ်မှတ်ရန်"
+                          : "Scan Barcode / Type Serial & Expiry Code"}
+                      </span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                       <div>
-                        <label className="text-[10px] font-semibold text-slate-600">Serial Number / IMEI</label>
+                        <label className="text-[10px] font-semibold text-slate-600">Serial Number / Barcode *</label>
                         <input
                           type="text"
-                          placeholder="e.g. SN-8823901"
+                          placeholder="e.g. SN-8823901 (Enter to add)"
                           value={newSerialInput}
                           onChange={(e) => setNewSerialInput(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddSerial();
+                            }
+                          }}
+                          className="w-full bg-slate-50 border border-blue-400 focus:border-blue-600 rounded-xl px-2.5 py-1.5 text-xs font-mono font-bold text-slate-900 focus:outline-none shadow-2xs"
                         />
                       </div>
                       <div>
@@ -1719,11 +1837,11 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                         <select
                           value={newSerialBranch}
                           onChange={(e) => setNewSerialBranch(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-bold"
                         >
                           {branches.map((b) => (
                             <option key={b.id} value={b.id}>
-                              {b.name}
+                              {b.name} ({serials.filter((s) => s.branchId === b.id).length}/{Number(branchStock[b.id] || 0)})
                             </option>
                           ))}
                         </select>
@@ -1735,7 +1853,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                           placeholder="e.g. LOT-2026-08A"
                           value={newSerialLot}
                           onChange={(e) => setNewSerialLot(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-800 focus:outline-none focus:border-emerald-500"
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-500"
                         />
                       </div>
                       <div>
@@ -1744,7 +1862,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                           type="date"
                           value={newSerialExpiry}
                           onChange={(e) => setNewSerialExpiry(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                         />
                       </div>
                     </div>
@@ -1753,7 +1871,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                       <button
                         type="button"
                         onClick={handleAddSerial}
-                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-xs flex items-center space-x-1.5"
+                        className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-xs flex items-center space-x-1.5"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>{language === "my" ? "Serial စာရင်းထဲသို့ ထည့်မည်" : "Add Serial to List"}</span>
@@ -1765,12 +1883,12 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
                     <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex justify-between items-center text-xs font-semibold text-slate-700">
                       <span>Assigned Serials & Expired Codes ({serials.length})</span>
-                      <span className="text-[11px] text-slate-500">UOM: {uom}</span>
+                      <span className="text-[11px] text-slate-500 font-mono">UOM: {uom}</span>
                     </div>
 
                     {serials.length === 0 ? (
                       <div className="p-6 text-center text-slate-400 text-xs">
-                        No serial numbers recorded yet. Use the inputs above to add individual serials with expiry codes.
+                        No serial numbers recorded yet. Use the inputs above to scan or enter individual serials.
                       </div>
                     ) : (
                       <div className="max-h-48 overflow-y-auto custom-scrollbar">
@@ -1838,8 +1956,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   </span>
                   <p className="text-[11px] text-purple-800 mt-0.5">
                     {language === "my"
-                      ? "လက်ကျန်အရေအတွက်များကို အရောင် (Color) နှင့် အရွယ်အစား/သိုလှောင်မှု (Size/Spec) စစ်တမ်းဖြင့် ဇယားကွက်ပုံစံ ထည့်သွင်းစီမံနိုင်ပါသည်"
-                      : "Distribute inventory counts across multi-attribute variant matrix grid per branch"}
+                      ? "Yangon, MDY စသည့် ဆိုင်ခွဲအလိုက် လက်ကျန်အရေအတွက်များကို အရောင် (Color) နှင့် အရွယ်အစား (Size/Spec) စစ်တမ်းဖြင့် ဇယားကွက်ပုံစံ ထည့်သွင်းစီမံနိုင်ပါသည်"
+                      : "Distribute on-hand inventory counts across Color x Size variant matrix per store branch"}
                   </p>
                 </div>
                 <input
@@ -1852,6 +1970,108 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
               {matrixEnabled && (
                 <div className="space-y-4">
+                  {/* Branch Stock & Matrix Allocation Breakdown Cards */}
+                  <div className="p-3.5 bg-purple-50/60 border border-purple-200 rounded-2xl space-y-2.5">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 text-xs">
+                      <div className="flex items-center space-x-2">
+                        <Building className="w-4 h-4 text-purple-700" />
+                        <span className="font-bold text-slate-800">
+                          {language === "my" ? "ဆိုင်ခွဲအလိုက် Matrix လက်ကျန် အခြေအနေ:" : "Branch Stock & Matrix Totals:"}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2 font-mono text-[11px]">
+                        <span className="text-slate-600">
+                          Physical Stock: <b>{Object.values(branchStock).reduce<number>((a, b) => a + Number(b || 0), 0)} {uom}</b>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Branch Matrix Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                      {branches.map((b) => {
+                        const bStock = Number(branchStock[b.id] || 0);
+                        let bMatrixSum = 0;
+                        matrixColors.forEach((c) => {
+                          matrixSizes.forEach((s) => {
+                            const k = `${c}__${s}__${b.id}`;
+                            bMatrixSum += Number(matrixValues[k] || 0);
+                          });
+                        });
+                        const bDiff = bStock - bMatrixSum;
+                        const isSelected = selectedMatrixBranch === b.id;
+                        const isBalanced = bMatrixSum === bStock && bStock > 0;
+
+                        return (
+                          <div
+                            key={b.id}
+                            onClick={() => setSelectedMatrixBranch(b.id)}
+                            className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                              isSelected
+                                ? "bg-purple-700 text-white border-purple-800 shadow-xs ring-2 ring-purple-300"
+                                : "bg-white border-slate-200 hover:border-purple-300 hover:bg-purple-50/40"
+                            }`}
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <span className={`font-bold text-xs ${isSelected ? "text-white" : "text-slate-900"}`}>
+                                {b.name}
+                              </span>
+                              <span
+                                className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${
+                                  isSelected
+                                    ? "bg-white/20 text-white"
+                                    : isBalanced
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : bDiff > 0
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-slate-100 text-slate-600"
+                                }`}
+                              >
+                                {isBalanced ? "✅ Balanced" : bDiff > 0 ? `${bDiff} Missing` : "Complete"}
+                              </span>
+                            </div>
+
+                            <div className="flex justify-between text-[11px] font-mono">
+                              <span className={isSelected ? "text-purple-100" : "text-slate-600"}>Stock: {bStock}</span>
+                              <span className={isSelected ? "text-white font-bold" : "text-purple-900 font-bold"}>
+                                Matrix: {bMatrixSum}
+                              </span>
+                            </div>
+
+                            {/* Auto Distribute button */}
+                            {bDiff > 0 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const totalCells = matrixColors.length * matrixSizes.length;
+                                  if (totalCells === 0) return;
+                                  const base = Math.floor(bStock / totalCells);
+                                  let rem = bStock % totalCells;
+                                  const updated = { ...matrixValues };
+                                  matrixColors.forEach((c) => {
+                                    matrixSizes.forEach((s) => {
+                                      const k = `${c}__${s}__${b.id}`;
+                                      updated[k] = base + (rem > 0 ? 1 : 0);
+                                      if (rem > 0) rem--;
+                                    });
+                                  });
+                                  setMatrixValues(updated);
+                                }}
+                                className={`mt-1.5 w-full py-0.5 rounded text-[10px] font-bold transition-colors ${
+                                  isSelected
+                                    ? "bg-white text-purple-900 hover:bg-purple-50"
+                                    : "bg-purple-100 hover:bg-purple-200 text-purple-900"
+                                }`}
+                              >
+                                ⚡ Distribute {bStock} {uom}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Color & Size Attribute Builders */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white border border-slate-200 p-4 rounded-2xl">
                     {/* Color Tags */}
