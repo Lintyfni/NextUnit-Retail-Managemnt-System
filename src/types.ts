@@ -59,6 +59,7 @@ export interface SerialItem {
   serial: string;
   branchId: string;
   branchName?: string;
+  qty?: number;
   status: "AVAILABLE" | "SOLD" | "DEFECTIVE" | "RESERVED";
   expiryDate?: string;
   lotNumber?: string;

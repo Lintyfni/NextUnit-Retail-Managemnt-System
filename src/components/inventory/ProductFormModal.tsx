@@ -24,6 +24,7 @@ import {
   TrendingUp,
   RefreshCw,
   HelpCircle,
+  Zap,
 } from "lucide-react";
 
 interface ProductFormModalProps {
@@ -1683,8 +1684,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   </span>
                   <p className="text-[11px] text-slate-500 mt-0.5">
                     {language === "my"
-                      ? "Yangon, MDY စသည့် ဆိုင်ခွဲအလိုက် လက်ကျန် Qty ပေါ်တွင် Barcode ဖတ်၍ Serial Number တွဲဆက်ခွဲကပ်နိုင်ပါသည်"
-                      : "Assign & scan barcode serials directly onto Yangon, MDY branch on-hand quantities with expiry tracking"}
+                      ? "Yangon, MDY စသည့် ဆိုင်ခွဲအလိုက် လက်ကျန် Qty ပေါ်တွင် Barcode ဖတ်၍ Serial Number တစ်လိုင်းချင်းစီ Add လုပ်စီမံနိုင်ပါသည်"
+                      : "Assign serial numbers line-by-line per branch quantity with default lot, expiry, and quantity reconciliation"}
                   </p>
                 </div>
                 <input
@@ -1696,14 +1697,14 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               </div>
 
               {hasIMEI && (
-                <div className="space-y-4">
-                  {/* Branch Stock & Assigned Progress Breakdown */}
-                  <div className="p-3.5 bg-blue-50/60 border border-blue-200 rounded-2xl space-y-2.5">
+                <div className="space-y-3">
+                  {/* 1. Branch Selector Buttons */}
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 text-xs">
                       <div className="flex items-center space-x-2">
                         <Building className="w-4 h-4 text-blue-700" />
-                        <span className="font-bold text-slate-800">
-                          {language === "my" ? "ဆိုင်ခွဲအလိုက် လက်ကျန်နှင့် Serial အခြေအနေ:" : "Branch Stock & Assigned Serials:"}
+                        <span className="font-bold text-slate-900">
+                          {language === "my" ? "၁။ ဆိုင်ခွဲ ရွေးချယ်ပါ (Select Target Branch):" : "1. Select Branch:"}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2 font-mono text-[11px]">
@@ -1712,19 +1713,22 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                         </span>
                         <span className="text-slate-300">|</span>
                         <span className="text-blue-900 font-bold">
-                          Assigned: {serials.length} / {Object.values(branchStock).reduce<number>((a, b) => a + Number(b || 0), 0)}
+                          Assigned Serials: {serials.reduce((a, b) => a + Number(b.qty || 1), 0)} / {Object.values(branchStock).reduce<number>((a, b) => a + Number(b || 0), 0)}
                         </span>
                       </div>
                     </div>
 
                     {/* Branch Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {branches.map((b) => {
                         const bStock = Number(branchStock[b.id] || 0);
-                        const bAssigned = serials.filter((s) => s.branchId === b.id).length;
-                        const bRemaining = bStock - bAssigned;
+                        const bAssigned = serials
+                          .filter((s) => s.branchId === b.id)
+                          .reduce((a, sItem) => a + Number(sItem.qty || 1), 0);
+                        const bDiff = bStock - bAssigned;
                         const isSelected = newSerialBranch === b.id;
                         const isBalanced = bAssigned === bStock && bStock > 0;
+                        const isOver = bAssigned > bStock;
 
                         return (
                           <div
@@ -1746,81 +1750,130 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                                     ? "bg-white/20 text-white"
                                     : isBalanced
                                     ? "bg-emerald-100 text-emerald-800"
-                                    : bRemaining > 0
+                                    : isOver
+                                    ? "bg-rose-100 text-rose-800"
+                                    : bDiff > 0
                                     ? "bg-amber-100 text-amber-800"
                                     : "bg-slate-100 text-slate-600"
                                 }`}
                               >
-                                {isBalanced ? "✅ Balanced" : bRemaining > 0 ? `${bRemaining} Missing` : "Complete"}
+                                {isBalanced ? "✅ Balanced" : isOver ? `+${Math.abs(bDiff)} Over` : bDiff > 0 ? `${bDiff} Missing` : "Complete"}
                               </span>
                             </div>
 
                             <div className="flex justify-between text-[11px] font-mono">
-                              <span className={isSelected ? "text-blue-100" : "text-slate-600"}>Stock: {bStock}</span>
+                              <span className={isSelected ? "text-blue-100" : "text-slate-600"}>Stock: {bStock} {uom}</span>
                               <span className={isSelected ? "text-white font-bold" : "text-blue-800 font-bold"}>
                                 Serials: {bAssigned}
                               </span>
                             </div>
-
-                            {/* Auto-fill button */}
-                            {bRemaining > 0 && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const prefix = `SN-${(b.code || b.id).toUpperCase()}-`;
-                                  const newItems: SerialItem[] = [];
-                                  let cur = 1001;
-                                  for (let i = 0; i < bRemaining; i++) {
-                                    let cand = `${prefix}${String(cur + i).padStart(4, "0")}`;
-                                    while (serials.some((s) => s.serial === cand)) {
-                                      cur += 10;
-                                      cand = `${prefix}${String(cur + i).padStart(4, "0")}`;
-                                    }
-                                    newItems.push({
-                                      serial: cand,
-                                      branchId: b.id,
-                                      branchName: b.name,
-                                      status: "AVAILABLE",
-                                      expiryDate: newSerialExpiry || undefined,
-                                      lotNumber: newSerialLot || undefined,
-                                      createdAt: new Date().toISOString(),
-                                    });
-                                  }
-                                  setSerials((prev) => [...newItems, ...prev]);
-                                }}
-                                className={`mt-1.5 w-full py-0.5 rounded text-[10px] font-bold transition-colors ${
-                                  isSelected
-                                    ? "bg-white text-blue-800 hover:bg-blue-50"
-                                    : "bg-blue-100 hover:bg-blue-200 text-blue-800"
-                                }`}
-                              >
-                                + Auto-Fill {bRemaining} Serials
-                              </button>
-                            )}
                           </div>
                         );
                       })}
                     </div>
                   </div>
 
-                  {/* Add New Serial Entry Box with Barcode Scan */}
-                  <div className="bg-white border border-slate-200 p-4 rounded-2xl space-y-3 shadow-xs">
-                    <div className="font-bold text-slate-900 text-xs flex items-center space-x-1.5">
-                      <Barcode className="w-4 h-4 text-blue-600" />
-                      <span>
-                        {language === "my"
-                          ? "Barcode ဖတ် / ရိုက်ထည့်၍ Serial & Expired Code သတ်မှတ်ရန်"
-                          : "Scan Barcode / Type Serial & Expiry Code"}
-                      </span>
+                  {/* 2. Top Preset (Default Lot / Expired Header) */}
+                  <div className="p-3.5 bg-blue-50/60 border border-blue-200 rounded-2xl space-y-2">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1">
+                      <div className="flex items-center space-x-2">
+                        <Sparkles className="w-4 h-4 text-blue-700" />
+                        <span className="text-xs font-bold text-slate-900">
+                          {language === "my"
+                            ? "၂။ Default Lot & Expired Date သတ်မှတ်ချက် (အောက်က Add လုပ်တိုင်း Auto Default ပါရှိမည့် တန်ဖိုးများ):"
+                            : "2. Default Preset for New Rows:"}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSerials((prev) =>
+                            prev.map((item) => {
+                              if (item.branchId === newSerialBranch) {
+                                return {
+                                  ...item,
+                                  lotNumber: newSerialLot || item.lotNumber,
+                                  expiryDate: newSerialExpiry || item.expiryDate,
+                                };
+                              }
+                              return item;
+                            })
+                          );
+                        }}
+                        className="text-[11px] text-blue-800 hover:text-blue-950 font-bold underline cursor-pointer self-start sm:self-auto"
+                      >
+                        ⚡ {language === "my" ? "ဒီတန်ဖိုးများကို လက်ရှိလိုင်းအားလုံးသို့ Apply လုပ်မည်" : "Apply defaults to all rows in branch"}
+                      </button>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                       <div>
-                        <label className="text-[10px] font-semibold text-slate-600">Serial Number / Barcode *</label>
+                        <label className="text-[10px] font-bold text-slate-700 block mb-0.5">Default Lot / Batch #</label>
                         <input
                           type="text"
-                          placeholder="e.g. SN-8823901 (Enter to add)"
+                          placeholder="e.g. LOT-2026-08A"
+                          value={newSerialLot}
+                          onChange={(e) => setNewSerialLot(e.target.value)}
+                          className="w-full bg-white border border-blue-300 rounded-xl px-2.5 py-1.5 font-mono text-xs font-bold text-slate-900 focus:outline-none focus:border-blue-600 shadow-2xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-700 block mb-0.5">Default Expired Date</label>
+                        <input
+                          type="date"
+                          value={newSerialExpiry}
+                          onChange={(e) => setNewSerialExpiry(e.target.value)}
+                          className="w-full bg-white border border-blue-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 shadow-2xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-700 block mb-0.5">Default Status</label>
+                        <select
+                          className="w-full bg-white border border-blue-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-blue-600 shadow-2xs"
+                          defaultValue="AVAILABLE"
+                        >
+                          <option value="AVAILABLE">AVAILABLE (ရောင်းချနိုင်)</option>
+                          <option value="RESERVED">RESERVED (ကြိုတင်မှာယူ)</option>
+                          <option value="SOLD">SOLD (ရောင်းချပြီး)</option>
+                          <option value="DEFECTIVE">DEFECTIVE (ချွတ်ယွင်း)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-700 block mb-0.5">Active Branch</label>
+                        <select
+                          value={newSerialBranch}
+                          onChange={(e) => setNewSerialBranch(e.target.value)}
+                          className="w-full bg-white border border-blue-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 shadow-2xs font-bold"
+                        >
+                          {branches.map((b) => (
+                            <option key={b.id} value={b.id}>
+                              {b.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Add Line Controls / Fast Barcode Input */}
+                  <div className="bg-white border border-slate-200 p-3.5 rounded-2xl space-y-2.5 shadow-xs">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                      <div className="font-bold text-slate-900 text-xs flex items-center space-x-1.5">
+                        <Barcode className="w-4 h-4 text-blue-600" />
+                        <span>
+                          {language === "my"
+                            ? `၃။ Serial / Barcode ထည့်၍ တစ်လိုင်းချင်းစီ Add လုပ်ရန် (${branches.find((b) => b.id === newSerialBranch)?.name || newSerialBranch}):`
+                            : `3. Add Serial Lines (${branches.find((b) => b.id === newSerialBranch)?.name || newSerialBranch}):`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="relative flex-1 min-w-[200px]">
+                        <Barcode className="w-4 h-4 text-blue-500 absolute left-3 top-2.5" />
+                        <input
+                          type="text"
+                          placeholder={language === "my" ? "Serial Barcode ရိုက်ထည့်ပါ (Enter ခေါက်ပါ)..." : "Scan Serial Barcode (Enter to add)..."}
                           value={newSerialInput}
                           onChange={(e) => setNewSerialInput(e.target.value)}
                           onKeyDown={(e) => {
@@ -1829,112 +1882,284 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                               handleAddSerial();
                             }
                           }}
-                          className="w-full bg-slate-50 border border-blue-400 focus:border-blue-600 rounded-xl px-2.5 py-1.5 text-xs font-mono font-bold text-slate-900 focus:outline-none shadow-2xs"
+                          className="w-full bg-slate-50 border-2 border-blue-400 focus:border-blue-600 rounded-xl pl-9 pr-3 py-1.5 text-xs font-mono font-bold text-slate-900 focus:outline-none shadow-2xs"
                         />
                       </div>
-                      <div>
-                        <label className="text-[10px] font-semibold text-slate-600">Assign to Branch</label>
-                        <select
-                          value={newSerialBranch}
-                          onChange={(e) => setNewSerialBranch(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 font-bold"
-                        >
-                          {branches.map((b) => (
-                            <option key={b.id} value={b.id}>
-                              {b.name} ({serials.filter((s) => s.branchId === b.id).length}/{Number(branchStock[b.id] || 0)})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-semibold text-slate-600">Lot / Batch Code</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. LOT-2026-08A"
-                          value={newSerialLot}
-                          onChange={(e) => setNewSerialLot(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-semibold text-slate-600">Expired Date (သက်တမ်းကုန်ရက်)</label>
-                        <input
-                          type="date"
-                          value={newSerialExpiry}
-                          onChange={(e) => setNewSerialExpiry(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                        />
-                      </div>
-                    </div>
 
-                    <div className="flex justify-end">
                       <button
                         type="button"
                         onClick={handleAddSerial}
-                        className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-xs flex items-center space-x-1.5"
+                        className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-xs flex items-center space-x-1.5 shrink-0"
                       >
                         <Plus className="w-3.5 h-3.5" />
-                        <span>{language === "my" ? "Serial စာရင်းထဲသို့ ထည့်မည်" : "Add Serial to List"}</span>
+                        <span>{language === "my" ? "+ ၁ လိုင်းထည့်မည်" : "+ Add Line"}</span>
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const bObj = branches.find((b) => b.id === newSerialBranch) || branches[0];
+                          const prefix = `SN-${(bObj.code || bObj.id).toUpperCase()}-`;
+                          let cur = 1001 + serials.filter((s) => s.branchId === newSerialBranch).length;
+                          let cand = `${prefix}${String(cur).padStart(4, "0")}`;
+                          while (serials.some((s) => s.serial === cand)) {
+                            cur += 1;
+                            cand = `${prefix}${String(cur).padStart(4, "0")}`;
+                          }
+
+                          const newLine: SerialItem = {
+                            serial: cand,
+                            branchId: newSerialBranch,
+                            branchName: bObj.name,
+                            qty: 1,
+                            lotNumber: newSerialLot || undefined,
+                            expiryDate: newSerialExpiry || undefined,
+                            status: "AVAILABLE",
+                            createdAt: new Date().toISOString(),
+                          };
+                          setSerials((prev) => [newLine, ...prev]);
+                        }}
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold shrink-0"
+                      >
+                        + {language === "my" ? "လိုင်းလွတ်တိုးမည်" : "Empty Row"}
+                      </button>
+
+                      {(() => {
+                        const bStock = Number(branchStock[newSerialBranch] || 0);
+                        const bAssigned = serials
+                          .filter((s) => s.branchId === newSerialBranch)
+                          .reduce((a, sItem) => a + Number(sItem.qty || 1), 0);
+                        const diff = bStock - bAssigned;
+                        if (diff > 0) {
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const bObj = branches.find((b) => b.id === newSerialBranch) || branches[0];
+                                const prefix = `SN-${(bObj.code || bObj.id).toUpperCase()}-`;
+                                const newItems: SerialItem[] = [];
+                                let cur = 1001 + serials.filter((s) => s.branchId === newSerialBranch).length;
+                                for (let i = 0; i < diff; i++) {
+                                  let cand = `${prefix}${String(cur + i).padStart(4, "0")}`;
+                                  while (serials.some((s) => s.serial === cand) || newItems.some((s) => s.serial === cand)) {
+                                    cur += 1;
+                                    cand = `${prefix}${String(cur + i).padStart(4, "0")}`;
+                                  }
+                                  newItems.push({
+                                    serial: cand,
+                                    branchId: newSerialBranch,
+                                    branchName: bObj.name,
+                                    qty: 1,
+                                    lotNumber: newSerialLot || undefined,
+                                    expiryDate: newSerialExpiry || undefined,
+                                    status: "AVAILABLE",
+                                    createdAt: new Date().toISOString(),
+                                  });
+                                }
+                                setSerials((prev) => [...newItems, ...prev]);
+                              }}
+                              className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-xs flex items-center space-x-1 shrink-0"
+                            >
+                              <Zap className="w-3.5 h-3.5" />
+                              <span>{language === "my" ? `+${diff} လိုင်း Auto-Fill` : `Auto-Fill ${diff} Lines`}</span>
+                            </button>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                   </div>
 
-                  {/* Serial List Table */}
-                  <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
-                    <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex justify-between items-center text-xs font-semibold text-slate-700">
-                      <span>Assigned Serials & Expired Codes ({serials.length})</span>
-                      <span className="text-[11px] text-slate-500 font-mono">UOM: {uom}</span>
+                  {/* 4. Line-by-Line Editable Table */}
+                  <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xs">
+                    <div className="px-4 py-2.5 bg-slate-100 border-b border-slate-200 flex justify-between items-center text-xs font-semibold text-slate-800">
+                      <span>
+                        {language === "my"
+                          ? `"${branches.find((b) => b.id === newSerialBranch)?.name || newSerialBranch}" ၏ Serial စာရင်းလိုင်းများ`
+                          : `Serial Line Items for ${branches.find((b) => b.id === newSerialBranch)?.name || newSerialBranch}`}
+                      </span>
+                      <span className="text-[11px] text-slate-600 font-mono">
+                        {serials.filter((s) => s.branchId === newSerialBranch).length} Lines | UOM: {uom}
+                      </span>
                     </div>
 
-                    {serials.length === 0 ? (
+                    {serials.filter((s) => s.branchId === newSerialBranch).length === 0 ? (
                       <div className="p-6 text-center text-slate-400 text-xs">
-                        No serial numbers recorded yet. Use the inputs above to scan or enter individual serials.
+                        {language === "my"
+                          ? "ဒီဆိုင်ခွဲအတွက် Serial လိုင်း မထည့်ရသေးပါ။ အပေါ်ရှိ Input တွင် Barcode ရိုက်ထည့်၍ သို့မဟုတ် '+ ၁ လိုင်းထည့်မည်' နှိပ်၍ စတင်ထည့်သွင်းပါ။"
+                          : "No serial numbers recorded yet for this branch. Scan or type serial above to add."}
                       </div>
                     ) : (
-                      <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                      <div className="max-h-60 overflow-y-auto custom-scrollbar">
                         <table className="w-full text-left text-xs text-slate-700">
-                          <thead className="bg-slate-50/50 text-[10px] uppercase text-slate-500 border-b border-slate-100">
+                          <thead className="bg-slate-50 text-[10px] uppercase text-slate-600 border-b border-slate-200 sticky top-0 z-10">
                             <tr>
-                              <th className="px-3 py-2">Serial / IMEI</th>
-                              <th className="px-3 py-2">Branch</th>
-                              <th className="px-3 py-2">Lot Code</th>
-                              <th className="px-3 py-2">Expiry Date</th>
-                              <th className="px-3 py-2">Status</th>
-                              <th className="px-3 py-2 text-right">Action</th>
+                              <th className="px-3 py-2 w-10 text-center">#</th>
+                              <th className="px-3 py-2 min-w-[160px]">Serial / IMEI *</th>
+                              <th className="px-3 py-2 min-w-[130px]">Lot Code</th>
+                              <th className="px-3 py-2 min-w-[140px]">Expired Date</th>
+                              <th className="px-3 py-2 text-center w-20">Qty</th>
+                              <th className="px-3 py-2 w-28">Status</th>
+                              <th className="px-3 py-2 text-right w-16">Action</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 font-medium">
-                            {serials.map((s, sIdx) => (
-                              <tr key={sIdx} className="hover:bg-slate-50">
-                                <td className="px-3 py-2 font-mono font-bold text-slate-900">{s.serial}</td>
-                                <td className="px-3 py-2 text-slate-600">{s.branchName || s.branchId}</td>
-                                <td className="px-3 py-2 font-mono text-slate-500">{s.lotNumber || "-"}</td>
-                                <td className="px-3 py-2 font-mono text-slate-700">
-                                  <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-[10px]">
-                                    {s.expiryDate || "N/A"}
-                                  </span>
-                                </td>
-                                <td className="px-3 py-2">
-                                  <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-semibold">
-                                    {s.status}
-                                  </span>
-                                </td>
-                                <td className="px-3 py-2 text-right">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveSerial(sIdx)}
-                                    className="p-1 text-slate-400 hover:text-rose-600 rounded"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
+                            {serials
+                              .map((s, originalIdx) => ({ s, originalIdx }))
+                              .filter(({ s }) => s.branchId === newSerialBranch)
+                              .map(({ s, originalIdx }, rowIdx) => (
+                                <tr key={originalIdx} className="hover:bg-blue-50/30">
+                                  <td className="px-3 py-2 text-center text-slate-400 font-mono text-[11px]">
+                                    {rowIdx + 1}
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <input
+                                      type="text"
+                                      value={s.serial}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSerials((prev) =>
+                                          prev.map((item, idx) => (idx === originalIdx ? { ...item, serial: val } : item))
+                                        );
+                                      }}
+                                      className="w-full bg-slate-50 focus:bg-white border border-slate-300 focus:border-blue-500 rounded-xl px-2.5 py-1 text-xs font-mono font-bold text-slate-900 focus:outline-none"
+                                    />
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <input
+                                      type="text"
+                                      value={s.lotNumber || ""}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSerials((prev) =>
+                                          prev.map((item, idx) => (idx === originalIdx ? { ...item, lotNumber: val } : item))
+                                        );
+                                      }}
+                                      className="w-full bg-slate-50 focus:bg-white border border-slate-300 focus:border-blue-500 rounded-xl px-2.5 py-1 text-xs font-mono text-slate-800 focus:outline-none"
+                                    />
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <input
+                                      type="date"
+                                      value={s.expiryDate || ""}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSerials((prev) =>
+                                          prev.map((item, idx) => (idx === originalIdx ? { ...item, expiryDate: val } : item))
+                                        );
+                                      }}
+                                      className="w-full bg-slate-50 focus:bg-white border border-slate-300 focus:border-blue-500 rounded-xl px-2 py-1 text-xs text-slate-800 focus:outline-none"
+                                    />
+                                  </td>
+                                  <td className="px-3 py-2 text-center">
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      value={s.qty ?? 1}
+                                      onChange={(e) => {
+                                        const val = Math.max(1, Number(e.target.value));
+                                        setSerials((prev) =>
+                                          prev.map((item, idx) => (idx === originalIdx ? { ...item, qty: val } : item))
+                                        );
+                                      }}
+                                      className="w-16 bg-slate-50 focus:bg-white border border-slate-300 focus:border-blue-500 rounded-xl px-2 py-1 font-mono text-xs font-bold text-slate-900 text-center focus:outline-none"
+                                    />
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <select
+                                      value={s.status}
+                                      onChange={(e) => {
+                                        const val = e.target.value as any;
+                                        setSerials((prev) =>
+                                          prev.map((item, idx) => (idx === originalIdx ? { ...item, status: val } : item))
+                                        );
+                                      }}
+                                      className="w-full rounded-xl px-2 py-1 text-[11px] font-bold border border-slate-300 focus:outline-none bg-slate-50"
+                                    >
+                                      <option value="AVAILABLE">AVAILABLE</option>
+                                      <option value="RESERVED">RESERVED</option>
+                                      <option value="SOLD">SOLD</option>
+                                      <option value="DEFECTIVE">DEFECTIVE</option>
+                                    </select>
+                                  </td>
+                                  <td className="px-3 py-2 text-right">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveSerial(originalIdx)}
+                                      className="p-1 text-slate-400 hover:text-rose-600 rounded hover:bg-rose-50"
+                                      title="Delete row"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
                           </tbody>
                         </table>
                       </div>
                     )}
                   </div>
+
+                  {/* 5. Reconciliation & Balance Summary Bar */}
+                  {(() => {
+                    const bObj = branches.find((b) => b.id === newSerialBranch) || branches[0];
+                    const bTargetStock = Number(branchStock[newSerialBranch] || 0);
+                    const bAssigned = serials
+                      .filter((s) => s.branchId === newSerialBranch)
+                      .reduce((sum, item) => sum + Number(item.qty || 1), 0);
+                    const diff = bTargetStock - bAssigned;
+
+                    return (
+                      <div className="p-3 bg-slate-100 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-semibold text-slate-600">{bObj.name} Target Stock: <b>{bTargetStock} {uom}</b></span>
+                          <span>|</span>
+                          <span className="font-semibold text-blue-900">Total Added Qty: <b>{bAssigned} {uom}</b></span>
+                          <span>|</span>
+                          <span
+                            className={`px-2.5 py-1 rounded-xl font-bold border ${
+                              diff === 0
+                                ? "bg-emerald-100 text-emerald-900 border-emerald-300"
+                                : diff > 0
+                                ? "bg-amber-100 text-amber-900 border-amber-300"
+                                : "bg-rose-100 text-rose-900 border-rose-300"
+                            }`}
+                          >
+                            {diff === 0 ? "✅ Balanced (0 Diff)" : diff > 0 ? `⚠️ ${diff} Missing (Diff: -${diff})` : `⚠️ +${Math.abs(diff)} Over (Diff: +${Math.abs(diff)})`}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const prefix = `SN-${(bObj.code || bObj.id).toUpperCase()}-`;
+                            let cur = 1001 + serials.filter((s) => s.branchId === newSerialBranch).length;
+                            let cand = `${prefix}${String(cur).padStart(4, "0")}`;
+                            while (serials.some((s) => s.serial === cand)) {
+                              cur += 1;
+                              cand = `${prefix}${String(cur).padStart(4, "0")}`;
+                            }
+
+                            const newLine: SerialItem = {
+                              serial: cand,
+                              branchId: newSerialBranch,
+                              branchName: bObj.name,
+                              qty: 1,
+                              lotNumber: newSerialLot || undefined,
+                              expiryDate: newSerialExpiry || undefined,
+                              status: "AVAILABLE",
+                              createdAt: new Date().toISOString(),
+                            };
+                            setSerials((prev) => [newLine, ...prev]);
+                          }}
+                          className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center space-x-1"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>{language === "my" ? "+ နောက် ၁ လိုင်းတိုးမည်" : "+ Add Next Line"}</span>
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
