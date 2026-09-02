@@ -1453,6 +1453,7 @@ export const InventoryView: React.FC = () => {
         }}
         initialProduct={editingProduct || undefined}
         branches={branches}
+        currency={currency}
         language={language}
       />
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Product, PriceTier, Branch, SerialItem, BatchItem, StockMatrixConfig } from "../../types";
+import { Product, PriceTier, Branch, SerialItem, StockMatrixConfig } from "../../types";
 import { formatCurrency } from "../../utils/helpers";
 import {
   X,
@@ -10,15 +10,20 @@ import {
   Layers,
   DollarSign,
   ShieldCheck,
-  Calendar,
   Grid,
   Palette,
   Check,
-  Image as ImageIcon,
   Building,
   Info,
   Tag,
   Hash,
+  Edit2,
+  CheckCircle2,
+  Star,
+  Percent,
+  TrendingUp,
+  RefreshCw,
+  HelpCircle,
 } from "lucide-react";
 
 interface ProductFormModalProps {
@@ -42,14 +47,35 @@ const PRESET_IMAGES = [
   { label: "Home Appliance", url: "https://images.unsplash.com/photo-1558317374-067fb5f30001?w=500&auto=format&fit=crop&q=60" },
 ];
 
-const COMMON_UOMS = ["Pcs", "Box", "Carton", "Pack", "Set", "Unit", "Bottle", "Roll", "Dozen", "Pair", "ဘူး", "ခု", "ထုပ်"];
+const INITIAL_DEFAULT_UOMS = [
+  "Pcs",
+  "Box",
+  "Carton",
+  "Pack",
+  "Set",
+  "Unit",
+  "Bottle",
+  "Roll",
+  "Dozen",
+  "Pair",
+  "ဘူး",
+  "ခု",
+  "ထုပ်",
+  "လိပ်",
+  "တွဲ",
+  "ကတ်",
+  "အိတ်",
+  "လုံး",
+];
 
-const DEFAULT_PRICE_TIERS: PriceTier[] = [
-  { name: "Retail Walk-in (Standard)", price: 0 },
-  { name: "Wholesale (Bulk Tier 1)", price: 0 },
-  { name: "VIP Member Tier", price: 0 },
-  { name: "Dealer / Reseller", price: 0 },
-  { name: "Online / E-Commerce Promo", price: 0 },
+const QUICK_PRICE_TIER_NAMES = [
+  { en: "Standard Retail (Walk-in)", my: "လက်လီရောင်းဈေး (Retail)", minQty: 1 },
+  { en: "Wholesale (Bulk Tier 1)", my: "လက်ကားဈေး (Wholesale)", minQty: 5 },
+  { en: "VIP / Gold Member", my: "ဗီအိုင်ပီဈေး (VIP Member)", minQty: 1 },
+  { en: "Dealer / Agent", my: "ကိုယ်စားလှယ်ဈေး (Dealer/Agent)", minQty: 10 },
+  { en: "Online / Promo Tier", my: "အွန်လိုင်း ပရိုမိုးရှင်းဈေး (Online)", minQty: 1 },
+  { en: "Corporate / B2B", my: "ကုမ္ပဏီဈေး (Corporate B2B)", minQty: 20 },
+  { en: "Staff Discount", my: "ဝန်ထမ်းဈေး (Staff Price)", minQty: 1 },
 ];
 
 export const ProductFormModal: React.FC<ProductFormModalProps> = ({
@@ -79,12 +105,69 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   const [binLocation, setBinLocation] = useState("Aisle A1, Shelf 01");
   const [supplierId, setSupplierId] = useState("SUP-001");
   const [tags, setTags] = useState<string[]>(["new-arrival"]);
-  const [tagInput, setTagInput] = useState("");
+
+  // UOM Management State
+  const [uomList, setUomList] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("pos_custom_uoms");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // ignore
+    }
+    return INITIAL_DEFAULT_UOMS;
+  });
+  const [newUomInput, setNewUomInput] = useState("");
+  const [editingUomIdx, setEditingUomIdx] = useState<number | null>(null);
+  const [editingUomText, setEditingUomText] = useState("");
 
   // Pricing State (5 tiers)
   const [costPrice, setCostPrice] = useState<number>(0);
   const [sellingPrice, setSellingPrice] = useState<number>(0);
-  const [priceTiers, setPriceTiers] = useState<PriceTier[]>(DEFAULT_PRICE_TIERS);
+  const [priceTiers, setPriceTiers] = useState<PriceTier[]>([
+    {
+      id: "tier_1",
+      name: "Standard Retail (Walk-in)",
+      nameMy: "လက်လီရောင်းဈေး (Retail)",
+      price: 0,
+      minQty: 1,
+      isDefault: true,
+    },
+    {
+      id: "tier_2",
+      name: "Wholesale (Bulk Tier 1)",
+      nameMy: "လက်ကားဈေး (Wholesale)",
+      price: 0,
+      minQty: 5,
+      isDefault: false,
+    },
+    {
+      id: "tier_3",
+      name: "VIP / Gold Member",
+      nameMy: "ဗီအိုင်ပီဈေး (VIP Member)",
+      price: 0,
+      minQty: 1,
+      isDefault: false,
+    },
+    {
+      id: "tier_4",
+      name: "Dealer / Agent",
+      nameMy: "ကိုယ်စားလှယ်ဈေး (Dealer/Agent)",
+      price: 0,
+      minQty: 10,
+      isDefault: false,
+    },
+    {
+      id: "tier_5",
+      name: "Online / Promo Tier",
+      nameMy: "အွန်လိုင်း ပရိုမိုးရှင်းဈေး (Online)",
+      price: 0,
+      minQty: 1,
+      isDefault: false,
+    },
+  ]);
 
   // Stock & Inventory Parameters
   const [reorderLevel, setReorderLevel] = useState<number>(5);
@@ -119,24 +202,74 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setBarcode(initialProduct.barcode || "");
       setCategory(initialProduct.category || "Smartphones");
       setBrand(initialProduct.brand || "Apple");
-      setUom(initialProduct.uom || "Pcs");
+      const currentUom = initialProduct.uom || "Pcs";
+      setUom(currentUom);
+      // Ensure product UOM is in the list
+      setUomList((prev) => (prev.includes(currentUom) ? prev : [currentUom, ...prev]));
+
       setImage(initialProduct.image || PRESET_IMAGES[0].url);
       setBinLocation(initialProduct.binLocation || "Aisle A1, Shelf 01");
       setSupplierId(initialProduct.supplierId || "SUP-001");
       setTags(initialProduct.tags || []);
-      setCostPrice(Number(initialProduct.costPrice) || 0);
-      setSellingPrice(Number(initialProduct.sellingPrice) || 0);
+      const cost = Number(initialProduct.costPrice) || 0;
+      const retail = Number(initialProduct.sellingPrice) || 0;
+      setCostPrice(cost);
+      setSellingPrice(retail);
 
       // Price Tiers (Up to 5)
       if (initialProduct.basePrices && initialProduct.basePrices.length > 0) {
-        setPriceTiers(initialProduct.basePrices);
+        setPriceTiers(
+          initialProduct.basePrices.map((tier, idx) => ({
+            id: tier.id || `tier_${idx + 1}`,
+            name: tier.name || `Price Tier ${idx + 1}`,
+            nameMy: tier.nameMy || tier.name || `ရောင်းဈေး ${idx + 1}`,
+            price: Number(tier.price) || 0,
+            minQty: Number(tier.minQty) || 1,
+            isDefault: tier.isDefault ?? idx === 0,
+          }))
+        );
       } else {
         setPriceTiers([
-          { name: "Retail Walk-in (Standard)", price: Number(initialProduct.sellingPrice) || 0 },
-          { name: "Wholesale (Bulk Tier 1)", price: Math.round((Number(initialProduct.sellingPrice) || 0) * 0.92) },
-          { name: "VIP Member Tier", price: Math.round((Number(initialProduct.sellingPrice) || 0) * 0.95) },
-          { name: "Dealer / Reseller", price: Math.round((Number(initialProduct.sellingPrice) || 0) * 0.9) },
-          { name: "Online / E-Commerce Promo", price: Math.round((Number(initialProduct.sellingPrice) || 0) * 0.97) },
+          {
+            id: "tier_1",
+            name: "Standard Retail (Walk-in)",
+            nameMy: "လက်လီရောင်းဈေး (Retail)",
+            price: retail,
+            minQty: 1,
+            isDefault: true,
+          },
+          {
+            id: "tier_2",
+            name: "Wholesale (Bulk Tier 1)",
+            nameMy: "လက်ကားဈေး (Wholesale)",
+            price: Math.round(retail * 0.92),
+            minQty: 5,
+            isDefault: false,
+          },
+          {
+            id: "tier_3",
+            name: "VIP / Gold Member",
+            nameMy: "ဗီအိုင်ပီဈေး (VIP Member)",
+            price: Math.round(retail * 0.95),
+            minQty: 1,
+            isDefault: false,
+          },
+          {
+            id: "tier_4",
+            name: "Dealer / Agent",
+            nameMy: "ကိုယ်စားလှယ်ဈေး (Dealer/Agent)",
+            price: Math.round(retail * 0.9),
+            minQty: 10,
+            isDefault: false,
+          },
+          {
+            id: "tier_5",
+            name: "Online / Promo Tier",
+            nameMy: "အွန်လိုင်း ပရိုမိုးရှင်းဈေး (Online)",
+            price: Math.round(retail * 0.97),
+            minQty: 1,
+            isDefault: false,
+          },
         ]);
       }
 
@@ -177,11 +310,46 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setCostPrice(100000);
       setSellingPrice(150000);
       setPriceTiers([
-        { name: "Retail Walk-in (Standard)", price: 150000 },
-        { name: "Wholesale (Bulk Tier 1)", price: 135000 },
-        { name: "VIP Member Tier", price: 140000 },
-        { name: "Dealer / Reseller", price: 130000 },
-        { name: "Online / E-Commerce Promo", price: 145000 },
+        {
+          id: "tier_1",
+          name: "Standard Retail (Walk-in)",
+          nameMy: "လက်လီရောင်းဈေး (Retail)",
+          price: 150000,
+          minQty: 1,
+          isDefault: true,
+        },
+        {
+          id: "tier_2",
+          name: "Wholesale (Bulk Tier 1)",
+          nameMy: "လက်ကားဈေး (Wholesale)",
+          price: 135000,
+          minQty: 5,
+          isDefault: false,
+        },
+        {
+          id: "tier_3",
+          name: "VIP / Gold Member",
+          nameMy: "ဗီအိုင်ပီဈေး (VIP Member)",
+          price: 140000,
+          minQty: 1,
+          isDefault: false,
+        },
+        {
+          id: "tier_4",
+          name: "Dealer / Agent",
+          nameMy: "ကိုယ်စားလှယ်ဈေး (Dealer/Agent)",
+          price: 130000,
+          minQty: 10,
+          isDefault: false,
+        },
+        {
+          id: "tier_5",
+          name: "Online / Promo Tier",
+          nameMy: "အွန်လိုင်း ပရိုမိုးရှင်းဈေး (Online)",
+          price: 145000,
+          minQty: 1,
+          isDefault: false,
+        },
       ]);
       setReorderLevel(5);
       setSafetyStock(8);
@@ -217,33 +385,281 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     setSku(`${brandPrefix}-${catPrefix}-${rand}`);
   };
 
-  // Price Tier Handlers
-  const handleUpdatePriceTier = (index: number, field: "name" | "price", value: string | number) => {
+  // ==========================================
+  // UOM (Unit of Measure) CRUD Handlers
+  // ==========================================
+  const saveUomList = (updated: string[]) => {
+    setUomList(updated);
+    try {
+      localStorage.setItem("pos_custom_uoms", JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleAddUom = () => {
+    const val = newUomInput.trim();
+    if (!val) return;
+    if (!uomList.includes(val)) {
+      const updated = [...uomList, val];
+      saveUomList(updated);
+      setUom(val);
+    } else {
+      setUom(val);
+    }
+    setNewUomInput("");
+  };
+
+  const handleStartEditUom = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingUomIdx(index);
+    setEditingUomText(uomList[index]);
+  };
+
+  const handleSaveEditUom = (index: number) => {
+    const trimmed = editingUomText.trim();
+    if (!trimmed) {
+      setEditingUomIdx(null);
+      return;
+    }
+    const oldVal = uomList[index];
+    const updated = [...uomList];
+    updated[index] = trimmed;
+    saveUomList(updated);
+
+    if (uom === oldVal) {
+      setUom(trimmed);
+    }
+    setEditingUomIdx(null);
+  };
+
+  const handleDeleteUom = (valToDelete: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (uomList.length <= 1) return;
+    const updated = uomList.filter((item) => item !== valToDelete);
+    saveUomList(updated);
+    if (uom === valToDelete) {
+      setUom(updated[0] || "Pcs");
+    }
+  };
+
+  // ==========================================
+  // 5-Tier Base Selling Price CRUD Handlers
+  // ==========================================
+  const handleUpdatePriceTier = (
+    index: number,
+    field: "name" | "nameMy" | "price" | "minQty" | "isDefault",
+    value: string | number | boolean
+  ) => {
     const updated = [...priceTiers];
     if (field === "price") {
       const numVal = Math.max(0, Number(value));
       updated[index].price = numVal;
-      if (index === 0) {
+      if (updated[index].isDefault || index === 0) {
         setSellingPrice(numVal);
       }
-    } else {
+    } else if (field === "name") {
       updated[index].name = String(value);
+    } else if (field === "nameMy") {
+      updated[index].nameMy = String(value);
+    } else if (field === "minQty") {
+      updated[index].minQty = Math.max(1, Number(value));
+    } else if (field === "isDefault") {
+      updated.forEach((t, i) => {
+        t.isDefault = i === index;
+      });
+      setSellingPrice(updated[index].price);
     }
     setPriceTiers(updated);
   };
 
   const handleAddPriceTier = () => {
-    if (priceTiers.length >= 5) return;
     const nextTierNum = priceTiers.length + 1;
-    setPriceTiers([
-      ...priceTiers,
-      { name: `Pricing Tier ${nextTierNum}`, price: Math.round(sellingPrice * 0.95) },
-    ]);
+    const presetName =
+      QUICK_PRICE_TIER_NAMES[priceTiers.length] || {
+        en: `Custom Tier ${nextTierNum}`,
+        my: `ရောင်းဈေးအဆင့် ${nextTierNum}`,
+        minQty: nextTierNum * 2,
+      };
+
+    const newTier: PriceTier = {
+      id: `tier_${Date.now()}_${nextTierNum}`,
+      name: presetName.en,
+      nameMy: presetName.my,
+      price: Math.round(sellingPrice > 0 ? sellingPrice * (1 - nextTierNum * 0.03) : costPrice * 1.2),
+      minQty: presetName.minQty || 1,
+      isDefault: false,
+    };
+
+    setPriceTiers([...priceTiers, newTier]);
   };
 
   const handleRemovePriceTier = (index: number) => {
-    if (priceTiers.length <= 1) return;
-    setPriceTiers(priceTiers.filter((_, i) => i !== index));
+    if (priceTiers.length <= 1) {
+      alert(language === "my" ? "အနည်းဆုံး ရောင်းဈေး ၁ မျိုး ရှိရပါမည်။" : "At least 1 base selling price is required.");
+      return;
+    }
+    const wasDefault = priceTiers[index]?.isDefault;
+    const updated = priceTiers.filter((_, i) => i !== index);
+    if (wasDefault && updated.length > 0) {
+      updated[0].isDefault = true;
+      setSellingPrice(updated[0].price);
+    }
+    setPriceTiers(updated);
+  };
+
+  // Quick Markup Helpers
+  const handleApplyMarkupToTier = (index: number, percent: number) => {
+    if (costPrice <= 0) return;
+    const calculated = Math.round(costPrice * (1 + percent / 100));
+    handleUpdatePriceTier(index, "price", calculated);
+  };
+
+  const handleApplyDiscountFromRetail = (index: number, percent: number) => {
+    const retail = priceTiers[0]?.price || sellingPrice;
+    if (retail <= 0) return;
+    const calculated = Math.round(retail * (1 - percent / 100));
+    handleUpdatePriceTier(index, "price", calculated);
+  };
+
+  // Quick 5-Tier Templates
+  const handleApply5TierTemplate = (type: "OMNI" | "VOLUME" | "VIP") => {
+    const base = costPrice > 0 ? costPrice : 100000;
+    const baseRetail = sellingPrice > 0 ? sellingPrice : Math.round(base * 1.4);
+
+    if (type === "OMNI") {
+      setPriceTiers([
+        {
+          id: "t1",
+          name: "Standard Retail (Walk-in)",
+          nameMy: "လက်လီရောင်းဈေး (Retail)",
+          price: baseRetail,
+          minQty: 1,
+          isDefault: true,
+        },
+        {
+          id: "t2",
+          name: "Wholesale (Bulk Tier 1)",
+          nameMy: "လက်ကားဈေး (Wholesale)",
+          price: Math.round(baseRetail * 0.88),
+          minQty: 5,
+          isDefault: false,
+        },
+        {
+          id: "t3",
+          name: "VIP Member Tier",
+          nameMy: "ဗီအိုင်ပီဈေး (VIP Member)",
+          price: Math.round(baseRetail * 0.94),
+          minQty: 1,
+          isDefault: false,
+        },
+        {
+          id: "t4",
+          name: "Dealer / Reseller",
+          nameMy: "ကိုယ်စားလှယ်ဈေး (Dealer/Agent)",
+          price: Math.round(baseRetail * 0.82),
+          minQty: 20,
+          isDefault: false,
+        },
+        {
+          id: "t5",
+          name: "Online / Flash Promo",
+          nameMy: "အွန်လိုင်း ပရိုမိုးရှင်းဈေး (Online Promo)",
+          price: Math.round(baseRetail * 0.95),
+          minQty: 1,
+          isDefault: false,
+        },
+      ]);
+      setSellingPrice(baseRetail);
+    } else if (type === "VOLUME") {
+      setPriceTiers([
+        {
+          id: "v1",
+          name: "Qty 1-4 (Single Retail)",
+          nameMy: "၁-၄ ခု (လက်လီဈေး)",
+          price: baseRetail,
+          minQty: 1,
+          isDefault: true,
+        },
+        {
+          id: "v2",
+          name: "Qty 5-9 (Small Pack)",
+          nameMy: "၅-၉ ခု (အထုပ်ငယ်ဈေး)",
+          price: Math.round(baseRetail * 0.93),
+          minQty: 5,
+          isDefault: false,
+        },
+        {
+          id: "v3",
+          name: "Qty 10-49 (Box Wholesale)",
+          nameMy: "၁၀-၄၉ ခု (သေတ္တာလိုက်ဈေး)",
+          price: Math.round(baseRetail * 0.87),
+          minQty: 10,
+          isDefault: false,
+        },
+        {
+          id: "v4",
+          name: "Qty 50-99 (Carton Bulk)",
+          nameMy: "၅၀-၉၉ ခု (ဖာလိုက်ဈေး)",
+          price: Math.round(baseRetail * 0.8),
+          minQty: 50,
+          isDefault: false,
+        },
+        {
+          id: "v5",
+          name: "Qty 100+ (Master Distributor)",
+          nameMy: "၁၀၀+ ခု (ပင်မဖောက်သည်ကြီးဈေး)",
+          price: Math.round(baseRetail * 0.75),
+          minQty: 100,
+          isDefault: false,
+        },
+      ]);
+      setSellingPrice(baseRetail);
+    } else if (type === "VIP") {
+      setPriceTiers([
+        {
+          id: "c1",
+          name: "Walk-in Guest",
+          nameMy: "သာမန်ဧည့်သည်ဈေး (Standard)",
+          price: baseRetail,
+          minQty: 1,
+          isDefault: true,
+        },
+        {
+          id: "c2",
+          name: "Silver Member (5% Off)",
+          nameMy: "ဆာလ်ဗာ မန်ဘာဈေး (Silver 5%)",
+          price: Math.round(baseRetail * 0.95),
+          minQty: 1,
+          isDefault: false,
+        },
+        {
+          id: "c3",
+          name: "Gold Member (10% Off)",
+          nameMy: "ဂိုးလ် မန်ဘာဈေး (Gold 10%)",
+          price: Math.round(baseRetail * 0.9),
+          minQty: 1,
+          isDefault: false,
+        },
+        {
+          id: "c4",
+          name: "Platinum VIP (15% Off)",
+          nameMy: "ပလက်တီနမ် ဗီအိုင်ပီဈေး (Platinum 15%)",
+          price: Math.round(baseRetail * 0.85),
+          minQty: 1,
+          isDefault: false,
+        },
+        {
+          id: "c5",
+          name: "Diamond Partner (20% Off)",
+          nameMy: "ဒိုင်မွန်း မိတ်ဖက်ဈေး (Diamond 20%)",
+          price: Math.round(baseRetail * 0.8),
+          minQty: 1,
+          isDefault: false,
+        },
+      ]);
+      setSellingPrice(baseRetail);
+    }
   };
 
   // Stock Matrix helpers
@@ -331,7 +747,10 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     }
 
     const finalCategory = customCategory.trim() ? customCategory.trim() : category;
-    const mainSelling = priceTiers[0]?.price || sellingPrice || costPrice;
+
+    // Find default price tier or first tier
+    const defaultTier = priceTiers.find((t) => t.isDefault) || priceTiers[0];
+    const mainSelling = defaultTier ? defaultTier.price : sellingPrice || costPrice;
 
     // Prepare matrix config
     const matrixConfig: StockMatrixConfig | undefined = matrixEnabled
@@ -397,8 +816,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               </h2>
               <p className="text-xs text-slate-500">
                 {language === "my"
-                  ? "Product Name, Code, Barcode, Base Selling Prices (၅ မျိုး), UOM, Serial & Expired Codes နှင့် Color/Size Matrix"
-                  : "SKU, Barcode, 5-Tier Base Selling Prices, UOM, Serials & Expiry, and Stock Matrix"}
+                  ? "Product Name, Code, Barcode, Base Selling Prices (၅ မျိုး စိတ်ကြိုက်ပြင်ဆင်/ထည့်/ဖျက်), UOM စီမံမှု, Serial/Expired Codes နှင့် Color/Size Matrix"
+                  : "SKU, Barcode, Editable 5-Tier Base Selling Prices (New/Edit/Delete), UOM Management, Serials & Expiry, and Stock Matrix"}
               </p>
             </div>
           </div>
@@ -421,7 +840,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
             }`}
           >
             <Info className="w-3.5 h-3.5" />
-            <span>{language === "my" ? "၁။ အခြေခံ အချက်အလက်နှင့် UOM" : "1. Basic & UOM"}</span>
+            <span>{language === "my" ? "၁။ အခြေခံ & UOM စီမံမှု" : "1. Basic & UOM"}</span>
           </button>
           <button
             onClick={() => setActiveTab("PRICING")}
@@ -432,9 +851,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
             }`}
           >
             <DollarSign className="w-3.5 h-3.5" />
-            <span>{language === "my" ? "၂။ ရောင်းဈေး ၅ မျိုး (5-Tier Base Prices)" : "2. 5-Tier Base Prices"}</span>
+            <span>{language === "my" ? "၂။ ရောင်းဈေး ၅ မျိုး (5 Base Prices)" : "2. 5-Tier Base Prices"}</span>
             <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded-full font-mono">
-              {priceTiers.length}
+              {priceTiers.length} Tiers
             </span>
           </button>
           <button
@@ -487,7 +906,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5 text-xs">
-          {/* TAB 1: BASIC INFO & UOM */}
+          {/* TAB 1: BASIC INFO & UOM MANAGEMENT (EDIT / NEW / DELETE) */}
           {activeTab === "BASIC" && (
             <div className="space-y-4 animate-fade-in">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -579,54 +998,155 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 </div>
               </div>
 
-              {/* UOM (Unit of Measure) Section */}
-              <div className="bg-emerald-50/70 border border-emerald-200 p-4 rounded-2xl space-y-2.5">
-                <div className="flex items-center justify-between">
+              {/* UOM (Unit of Measure) Complete Management: New / Edit / Delete */}
+              <div className="bg-emerald-50/70 border border-emerald-200 p-4 rounded-2xl space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                   <div className="flex items-center space-x-2">
-                    <Tag className="w-4 h-4 text-emerald-700" />
-                    <span className="font-bold text-emerald-900">
-                      {language === "my" ? "ရေတွက်ယူနစ် (UOM - Unit of Measure)" : "Unit of Measure (UOM)"}
-                    </span>
+                    <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
+                      <Tag className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-emerald-950 text-xs">
+                        {language === "my" ? "ရေတွက်ယူနစ် စီမံမှု (UOM - Unit of Measure)" : "Unit of Measure (UOM) Manager"}
+                      </span>
+                      <p className="text-[11px] text-emerald-800">
+                        {language === "my"
+                          ? "ယူနစ်အသစ် ထည့်သွင်းခြင်း (New)၊ အမည်ပြင်ဆင်ခြင်း (Edit)၊ ဖျက်ခြင်း (Delete) နှင့် ကုန်ပစ္စည်းအတွက် ရွေးချယ်ခြင်း"
+                          : "Create custom UOMs, rename/edit existing units, delete unused ones, and select for this item"}
+                      </p>
+                    </div>
                   </div>
-                  <span className="text-[11px] text-emerald-800 font-medium">
-                    {language === "my" ? "စိတ်ကြိုက်ရိုက်ထည့်နိုင်သည် (သို့) အောက်ပါထဲမှ ရွေးနိုင်ပါသည်" : "Choose quick chip or type custom"}
-                  </span>
+
+                  <div className="flex items-center space-x-1.5 self-start sm:self-auto bg-white px-3 py-1 rounded-xl border border-emerald-300 shadow-2xs">
+                    <span className="text-[11px] text-slate-500">{language === "my" ? "ရွေးထားသော UOM:" : "Active:"}</span>
+                    <span className="font-bold text-emerald-800 text-xs font-mono">{uom}</span>
+                  </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <div className="w-full sm:w-1/3">
-                    <label className="text-[10px] font-semibold text-slate-600 block mb-1">
-                      {language === "my" ? "စိတ်ကြိုက် UOM ရိုက်ထည့်ရန်:" : "Custom UOM Text:"}
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Pcs, Box, Carton, ထုပ်, ဘူး"
-                      value={uom}
-                      onChange={(e) => setUom(e.target.value)}
-                      className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs font-bold text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-                    />
+                {/* Add New UOM Form */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder={
+                      language === "my"
+                        ? "UOM အသစ်ရိုက်ထည့်ပါ (e.g. Bucket, Meter, Yard, ဖာ, အိတ်, စုံ)..."
+                        : "Type new UOM (e.g. Bucket, Meter, Yard, Bag, Carton)..."
+                    }
+                    value={newUomInput}
+                    onChange={(e) => setNewUomInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddUom())}
+                    className="flex-1 bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddUom}
+                    className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-xs flex items-center space-x-1.5 transition-colors shrink-0"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{language === "my" ? "UOM အသစ်ထည့်မည် (New UOM)" : "+ Add New UOM"}</span>
+                  </button>
+                </div>
+
+                {/* UOM List with Selection, Inline Edit & Delete */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex justify-between items-center text-[11px] text-slate-600">
+                    <span className="font-semibold">
+                      {language === "my"
+                        ? `အသုံးပြုနိုင်သော UOM စာရင်း (${uomList.length} မျိုး) — ကလစ်နှိပ်၍ ရွေးပါ:`
+                        : `Available UOMs (${uomList.length}) — Click to select:`}
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                      {language === "my" ? "✏️ Edit / 🗑️ Delete လုပ်နိုင်ပါသည်" : "Inline edit & delete supported"}
+                    </span>
                   </div>
 
-                  <div className="w-full sm:w-2/3">
-                    <label className="text-[10px] font-semibold text-slate-600 block mb-1">
-                      {language === "my" ? "အသုံးများသော ယူနစ်များ (Quick Select):" : "Common Preset Units:"}
-                    </label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {COMMON_UOMS.map((unit) => (
-                        <button
+                  <div className="flex flex-wrap gap-1.5 p-2 bg-white/80 rounded-xl border border-emerald-200/80 max-h-36 overflow-y-auto custom-scrollbar">
+                    {uomList.map((unit, idx) => {
+                      const isSelected = uom === unit;
+                      const isEditingThis = editingUomIdx === idx;
+
+                      if (isEditingThis) {
+                        return (
+                          <div
+                            key={idx}
+                            className="inline-flex items-center space-x-1 bg-white border-2 border-emerald-500 rounded-lg p-0.5 shadow-xs"
+                          >
+                            <input
+                              type="text"
+                              value={editingUomText}
+                              onChange={(e) => setEditingUomText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  handleSaveEditUom(idx);
+                                } else if (e.key === "Escape") {
+                                  setEditingUomIdx(null);
+                                }
+                              }}
+                              autoFocus
+                              className="px-1.5 py-0.5 text-xs font-bold text-slate-900 w-24 bg-slate-50 rounded focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleSaveEditUom(idx)}
+                              className="p-1 bg-emerald-600 text-white rounded hover:bg-emerald-500"
+                              title="Save Name"
+                            >
+                              <Check className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingUomIdx(null)}
+                              className="p-1 bg-slate-200 text-slate-700 rounded hover:bg-slate-300"
+                              title="Cancel"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div
                           key={unit}
-                          type="button"
                           onClick={() => setUom(unit)}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                            uom === unit
-                              ? "bg-emerald-700 text-white shadow-xs"
+                          className={`group inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+                            isSelected
+                              ? "bg-emerald-700 text-white shadow-xs border border-emerald-800"
                               : "bg-white text-slate-700 border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50"
                           }`}
                         >
-                          {unit}
-                        </button>
-                      ))}
-                    </div>
+                          {isSelected && <Check className="w-3 h-3 text-emerald-200" />}
+                          <span>{unit}</span>
+
+                          {/* Inline Edit & Delete controls */}
+                          <div className="flex items-center space-x-0.5 ml-1 opacity-70 group-hover:opacity-100">
+                            <button
+                              type="button"
+                              onClick={(e) => handleStartEditUom(idx, e)}
+                              className={`p-0.5 rounded hover:bg-black/10 transition-colors ${
+                                isSelected ? "text-emerald-200 hover:text-white" : "text-slate-400 hover:text-slate-700"
+                              }`}
+                              title="Edit UOM Name"
+                            >
+                              <Edit2 className="w-2.5 h-2.5" />
+                            </button>
+                            {uomList.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleDeleteUom(unit, e)}
+                                className={`p-0.5 rounded hover:bg-black/10 transition-colors ${
+                                  isSelected ? "text-emerald-200 hover:text-rose-200" : "text-slate-400 hover:text-rose-600"
+                                }`}
+                                title="Delete UOM"
+                              >
+                                <Trash2 className="w-2.5 h-2.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -743,7 +1263,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
             </div>
           )}
 
-          {/* TAB 2: 5-TIER BASE SELLING PRICES & COST */}
+          {/* TAB 2: 5-TIER BASE SELLING PRICES (FULL CRUD: NEW / EDIT NAME & PRICE / DELETE / PRESETS) */}
           {activeTab === "PRICING" && (
             <div className="space-y-5 animate-fade-in">
               {/* Cost Price Card */}
@@ -751,118 +1271,263 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 <div>
                   <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
                     <DollarSign className="w-4 h-4 text-emerald-600" />
-                    <span>{language === "my" ? "မူရင်းဝယ်ဈေး (Cost Price)" : "Base Cost Price (COGS)"}</span>
+                    <span>{language === "my" ? "မူရင်းဝယ်ဈေး (Base Cost Price - COGS)" : "Base Cost Price (COGS)"}</span>
                   </span>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    {language === "my" ? "ကုန်ပစ္စည်းတစ်ခုချင်းစီ၏ ဝယ်ယူရရှိသော ကုန်ကျစရိတ်" : "Purchase acquisition cost per unit"}
+                    {language === "my"
+                      ? "ကုန်ပစ္စည်းတစ်ခုချင်းစီ၏ ဝယ်ယူရရှိသော ကုန်ကျစရိတ်ဖြစ်ပြီး အောက်ပါရောင်းဈေးများ၏ အမြတ် (Margin %) ကို တွက်ချက်ရာတွင် အသုံးပြုပါသည်"
+                      : "Direct acquisition cost used to calculate profit margins and markups across all selling tiers"}
                   </p>
                 </div>
                 <div className="w-full sm:w-48">
-                  <input
-                    type="number"
-                    min={0}
-                    value={costPrice}
-                    onChange={(e) => setCostPrice(Math.max(0, Number(e.target.value)))}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-mono font-bold text-slate-900 text-right focus:outline-none focus:border-emerald-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={0}
+                      value={costPrice}
+                      onChange={(e) => setCostPrice(Math.max(0, Number(e.target.value)))}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-mono font-bold text-slate-900 text-right focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
                   <div className="text-[10px] text-slate-400 text-right mt-0.5">
                     {formatCurrency(costPrice, currency as any, language as any)} / {uom}
                   </div>
                 </div>
               </div>
 
-              {/* 5-Tier Selling Price Builder */}
+              {/* 5-Tier Selling Price Header & Templates */}
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 pb-1 border-b border-slate-200">
                   <div>
-                    <h3 className="font-bold text-slate-900 text-xs">
-                      {language === "my" ? "ရောင်းဈေး ၅ မျိုး သတ်မှတ်ချက် (Up to 5 Base Selling Price Tiers)" : "5-Tier Base Selling Price Configuration"}
-                    </h3>
-                    <p className="text-[11px] text-slate-500">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-bold text-slate-900 text-xs">
+                        {language === "my"
+                          ? `ရောင်းဈေး ၅ မျိုး စီမံမှု (Base Selling Price Tiers — လက်ရှိ ${priceTiers.length} မျိုး)`
+                          : `Base Selling Price Tiers (${priceTiers.length} Configured)`}
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold font-mono">
+                        Editable Tiers
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
                       {language === "my"
-                        ? "Retail (လက်လီ)၊ Wholesale (လက်ကား)၊ VIP Club၊ Dealer နှင့် Online ဈေးနှုန်းများကို သီးခြားသတ်မှတ်နိုင်ပါသည်"
-                        : "Define specialized pricing tiers for Retail, Wholesale, VIP Members, Dealers, and E-Commerce"}
+                        ? "Tier Name ပြောင်းခြင်း၊ ရောင်းဈေးပြောင်းခြင်း၊ အသစ်ထည့်ခြင်း (New) နှင့် ဖျက်ခြင်း (Delete) များကို လွတ်လပ်စွာ လုပ်ဆောင်နိုင်ပါသည်"
+                        : "Freely edit tier names, adjust prices/margins, add new pricing tiers, delete tiers, or pick POS default"}
                     </p>
                   </div>
-                  {priceTiers.length < 5 && (
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* 1-Click Preset Templates */}
+                    <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl">
+                      <span className="text-[10px] font-semibold text-slate-500 px-1">
+                        {language === "my" ? "နမူနာပုံစံ:" : "Presets:"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleApply5TierTemplate("OMNI")}
+                        className="px-2 py-0.5 rounded-lg bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[10px] font-semibold border border-slate-200 shadow-2xs transition-colors"
+                        title="Retail, Wholesale, VIP, Dealer, Online"
+                      >
+                        Omni-5 Tiers
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleApply5TierTemplate("VOLUME")}
+                        className="px-2 py-0.5 rounded-lg bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[10px] font-semibold border border-slate-200 shadow-2xs transition-colors"
+                        title="Qty 1+, 5+, 10+, 50+, 100+"
+                      >
+                        Volume Tiers
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleApply5TierTemplate("VIP")}
+                        className="px-2 py-0.5 rounded-lg bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[10px] font-semibold border border-slate-200 shadow-2xs transition-colors"
+                        title="Standard, Silver, Gold, Platinum, Diamond"
+                      >
+                        VIP Club Tiers
+                      </button>
+                    </div>
+
                     <button
                       type="button"
                       onClick={handleAddPriceTier}
-                      className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl font-semibold flex items-center space-x-1"
+                      className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl font-bold flex items-center space-x-1.5 shadow-xs transition-colors text-xs shrink-0"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>{language === "my" ? "ဈေးနှုန်းအမျိုးအစား ထပ်ထည့်မည်" : "Add Price Tier"}</span>
+                      <span>{language === "my" ? "ဈေးနှုန်းအသစ်ထည့်မည်" : "+ Add Price Tier"}</span>
                     </button>
-                  )}
+                  </div>
                 </div>
 
-                <div className="space-y-2.5">
+                {/* Price Tiers List (Dynamic Full CRUD) */}
+                <div className="space-y-3">
                   {priceTiers.map((tier, idx) => {
-                    const margin = tier.price > 0 && costPrice > 0 ? ((tier.price - costPrice) / tier.price) * 100 : 0;
+                    const margin =
+                      tier.price > 0 && costPrice > 0 ? ((tier.price - costPrice) / tier.price) * 100 : 0;
                     const profit = tier.price - costPrice;
+                    const isDefault = tier.isDefault || idx === 0;
 
                     return (
                       <div
-                        key={idx}
-                        className={`p-3.5 rounded-2xl border transition-all ${
-                          idx === 0
-                            ? "bg-emerald-50/60 border-emerald-300"
+                        key={tier.id || idx}
+                        className={`p-4 rounded-2xl border transition-all ${
+                          isDefault
+                            ? "bg-emerald-50/70 border-emerald-400 shadow-xs"
                             : "bg-white border-slate-200 hover:border-slate-300"
                         }`}
                       >
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                          {/* Tier Name */}
-                          <div className="flex-1 w-full">
-                            <div className="flex items-center space-x-2 mb-1">
+                        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                          {/* Left: Tier Number, Default Star & Names (EN & MY) */}
+                          <div className="flex-1 w-full space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {/* Tier Badge */}
                               <span
-                                className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] ${
-                                  idx === 0
-                                    ? "bg-emerald-600 text-white"
-                                    : "bg-slate-200 text-slate-700"
+                                className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs font-mono shadow-2xs ${
+                                  isDefault ? "bg-emerald-700 text-white" : "bg-slate-200 text-slate-800"
                                 }`}
                               >
                                 {idx + 1}
                               </span>
-                              <input
-                                type="text"
-                                value={tier.name}
-                                onChange={(e) => handleUpdatePriceTier(idx, "name", e.target.value)}
-                                className="font-bold text-slate-900 bg-transparent border-b border-dashed border-slate-300 hover:border-slate-500 focus:border-emerald-600 focus:outline-none px-1 py-0.5 text-xs w-full max-w-xs"
-                                placeholder={`Pricing Tier ${idx + 1}`}
-                              />
-                              {idx === 0 && (
-                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-bold rounded-full">
-                                  Default POS Price
-                                </span>
-                              )}
+
+                              {/* Tier English Name Input */}
+                              <div className="flex-1 min-w-[180px]">
+                                <input
+                                  type="text"
+                                  value={tier.name}
+                                  onChange={(e) => handleUpdatePriceTier(idx, "name", e.target.value)}
+                                  className="w-full font-bold text-slate-900 bg-white border border-slate-300 hover:border-emerald-500 focus:border-emerald-600 focus:outline-none px-2.5 py-1 text-xs rounded-lg shadow-2xs"
+                                  placeholder={`Tier ${idx + 1} Name (English)`}
+                                />
+                              </div>
+
+                              {/* Tier Myanmar Localized Name Input */}
+                              <div className="flex-1 min-w-[180px]">
+                                <input
+                                  type="text"
+                                  value={tier.nameMy || ""}
+                                  onChange={(e) => handleUpdatePriceTier(idx, "nameMy", e.target.value)}
+                                  className="w-full text-slate-800 bg-white border border-slate-300 hover:border-emerald-500 focus:border-emerald-600 focus:outline-none px-2.5 py-1 text-xs rounded-lg shadow-2xs"
+                                  placeholder={language === "my" ? "မြန်မာအမည် (ဥပမာ - လက်ကားဈေး)" : "Myanmar Name"}
+                                />
+                              </div>
+
+                              {/* Default POS Toggle Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleUpdatePriceTier(idx, "isDefault", true)}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center space-x-1 transition-all ${
+                                  isDefault
+                                    ? "bg-emerald-700 text-white shadow-2xs"
+                                    : "bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-800"
+                                }`}
+                                title="Click to set as primary default price for POS cash registers"
+                              >
+                                <Star className={`w-3 h-3 ${isDefault ? "fill-amber-300 text-amber-300" : ""}`} />
+                                <span>{isDefault ? "Default POS Price" : "Set as Default"}</span>
+                              </button>
                             </div>
-                            <div className="text-[10px] text-slate-500 ml-7">
-                              Unit: <span className="font-semibold text-slate-700">{uom}</span> • Profit:{" "}
-                              <span className={`font-bold ${profit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
-                                {profit > 0 ? "+" : ""}
-                                {formatCurrency(profit, currency as any, language as any)}
-                              </span>{" "}
-                              ({margin.toFixed(1)}% margin)
+
+                            {/* Sub-row: Min Order Qty, Profit & Margin info */}
+                            <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-600 pl-8">
+                              {/* Min Qty */}
+                              <div className="flex items-center space-x-1">
+                                <span className="text-slate-500">Min Order:</span>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={tier.minQty || 1}
+                                  onChange={(e) => handleUpdatePriceTier(idx, "minQty", e.target.value)}
+                                  className="w-14 bg-white border border-slate-300 rounded-md px-1.5 py-0.5 text-center font-bold text-xs text-slate-800 focus:outline-none focus:border-emerald-500"
+                                />
+                                <span className="font-semibold text-slate-700">{uom}</span>
+                              </div>
+
+                              <span className="text-slate-300">|</span>
+
+                              {/* Profit */}
+                              <div>
+                                Profit:{" "}
+                                <span className={`font-mono font-bold ${profit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                                  {profit > 0 ? "+" : ""}
+                                  {formatCurrency(profit, currency as any, language as any)}
+                                </span>
+                              </div>
+
+                              <span className="text-slate-300">|</span>
+
+                              {/* Margin */}
+                              <div>
+                                Margin:{" "}
+                                <span
+                                  className={`font-mono font-bold px-1.5 py-0.2 rounded ${
+                                    margin >= 20
+                                      ? "bg-emerald-100 text-emerald-800"
+                                      : margin >= 0
+                                      ? "bg-amber-100 text-amber-800"
+                                      : "bg-rose-100 text-rose-800"
+                                  }`}
+                                >
+                                  {margin.toFixed(1)}%
+                                </span>
+                              </div>
+
+                              {/* Quick Markup Calculation Chips */}
+                              <div className="flex items-center space-x-1 ml-auto">
+                                <span className="text-[10px] text-slate-400">Cost Markup:</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleApplyMarkupToTier(idx, 10)}
+                                  className="px-1.5 py-0.2 rounded bg-slate-100 hover:bg-emerald-100 text-[10px] font-semibold text-slate-700"
+                                >
+                                  +10%
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleApplyMarkupToTier(idx, 20)}
+                                  className="px-1.5 py-0.2 rounded bg-slate-100 hover:bg-emerald-100 text-[10px] font-semibold text-slate-700"
+                                >
+                                  +20%
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleApplyMarkupToTier(idx, 30)}
+                                  className="px-1.5 py-0.2 rounded bg-slate-100 hover:bg-emerald-100 text-[10px] font-semibold text-slate-700"
+                                >
+                                  +30%
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleApplyMarkupToTier(idx, 50)}
+                                  className="px-1.5 py-0.2 rounded bg-slate-100 hover:bg-emerald-100 text-[10px] font-semibold text-slate-700"
+                                >
+                                  +50%
+                                </button>
+                              </div>
                             </div>
                           </div>
 
-                          {/* Price Input & Remove */}
-                          <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
-                            <div className="w-40">
+                          {/* Right: Price Input & Delete Button */}
+                          <div className="flex items-center space-x-2.5 w-full lg:w-auto justify-end shrink-0">
+                            <div className="w-44">
+                              <label className="block text-[10px] font-semibold text-slate-500 mb-0.5 text-right">
+                                {language === "my" ? `ရောင်းဈေး (${currency})` : `Selling Price (${currency})`}
+                              </label>
                               <input
                                 type="number"
                                 min={0}
                                 value={tier.price}
                                 onChange={(e) => handleUpdatePriceTier(idx, "price", e.target.value)}
-                                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-slate-900 text-right focus:outline-none focus:border-emerald-500"
+                                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-mono font-bold text-slate-900 text-right focus:outline-none focus:border-emerald-600 shadow-2xs"
                               />
                             </div>
+
+                            {/* Delete Tier Button */}
                             {priceTiers.length > 1 && (
                               <button
                                 type="button"
                                 onClick={() => handleRemovePriceTier(idx)}
-                                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                                title="Remove Tier"
+                                className="p-2.5 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-slate-200 hover:border-rose-300 transition-colors mt-4.5"
+                                title="Delete this price tier"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>

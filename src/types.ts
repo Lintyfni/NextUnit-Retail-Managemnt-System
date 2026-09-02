@@ -46,8 +46,13 @@ export interface CashRegister {
 }
 
 export interface PriceTier {
+  id?: string;
   name: string; // e.g. "Retail (Walk-in)", "Wholesale Tier 1", "VIP Platinum", "Dealer / Reseller", "Online / E-Commerce"
+  nameMy?: string;
   price: number;
+  minQty?: number;
+  isDefault?: boolean;
+  discountPercent?: number;
 }
 
 export interface SerialItem {
