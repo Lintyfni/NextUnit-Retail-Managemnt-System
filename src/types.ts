@@ -45,6 +45,40 @@ export interface CashRegister {
   todayTransactions: number;
 }
 
+export interface PriceTier {
+  name: string; // e.g. "Retail (Walk-in)", "Wholesale Tier 1", "VIP Platinum", "Dealer / Reseller", "Online / E-Commerce"
+  price: number;
+}
+
+export interface SerialItem {
+  serial: string;
+  branchId: string;
+  branchName?: string;
+  status: "AVAILABLE" | "SOLD" | "DEFECTIVE" | "RESERVED";
+  expiryDate?: string;
+  lotNumber?: string;
+  mfgDate?: string;
+  createdAt?: string;
+}
+
+export interface BatchItem {
+  batchNumber: string;
+  expiryDate: string;
+  mfgDate?: string;
+  quantity: number;
+  branchId: string;
+  branchName?: string;
+  notes?: string;
+}
+
+export interface StockMatrixConfig {
+  enabled: boolean;
+  colors: string[];
+  sizes: string[];
+  // Key format: `${color}__${size}__${branchId}`
+  matrix: Record<string, number>;
+}
+
 export interface Product {
   id: string;
   sku: string;
@@ -55,6 +89,8 @@ export interface Product {
   brand: string;
   costPrice: string | number;
   sellingPrice: number;
+  basePrices?: PriceTier[]; // Up to 5 base selling price tiers
+  uom?: string; // Unit of Measure (Pcs, Box, Carton, Pack, Set, etc.)
   image: string;
   hasIMEI: boolean; // Tracks serialized items like smartphones, laptops
   warrantyMonths: number;
@@ -66,6 +102,11 @@ export interface Product {
   branchStock: Record<string, number>; // branchId -> quantity
   tags: string[];
   salesVelocity: number; // avg units per day
+  // Serial & Expired tracking
+  serials?: SerialItem[];
+  batches?: BatchItem[];
+  // Stock Matrix (Color x Size)
+  stockMatrix?: StockMatrixConfig;
 }
 
 export interface CartItem {

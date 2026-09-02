@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useApp } from "../../context/AppContext";
 import { formatCurrency, formatDate } from "../../utils/helpers";
 import { Product, StockTransfer } from "../../types";
+import { ProductFormModal } from "../inventory/ProductFormModal";
+import { SerialExpiryModal } from "../inventory/SerialExpiryModal";
+import { StockMatrixModal } from "../inventory/StockMatrixModal";
 import {
   Package,
   ArrowLeftRight,
@@ -27,6 +30,13 @@ import {
   Check,
   ShieldCheck,
   FileSpreadsheet,
+  Edit2,
+  Grid,
+  Palette,
+  Tag,
+  DollarSign,
+  Barcode,
+  Info,
 } from "lucide-react";
 
 export const InventoryView: React.FC = () => {
@@ -37,6 +47,8 @@ export const InventoryView: React.FC = () => {
     createStockTransfer,
     updateStockTransferStatus,
     createStockAdjustment,
+    createProduct,
+    updateProduct,
     currency,
     language,
     currentUser,
@@ -50,6 +62,19 @@ export const InventoryView: React.FC = () => {
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [selectedProductForAdjust, setSelectedProductForAdjust] = useState<Product | null>(null);
+
+  // New & Edit Product Modal State
+  const [showProductFormModal, setShowProductFormModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  // Serial & Expiry Modal State
+  const [serialModalProduct, setSerialModalProduct] = useState<Product | null>(null);
+
+  // Stock Matrix Modal State
+  const [matrixModalProduct, setMatrixModalProduct] = useState<Product | null>(null);
+
+  // Multi-tier Prices Preview Modal
+  const [viewingPricesProduct, setViewingPricesProduct] = useState<Product | null>(null);
 
   // Transfer form state
   const defaultFrom = branches.find((b) => b.id.includes("WH"))?.id || branches[0]?.id || "";
@@ -318,12 +343,25 @@ export const InventoryView: React.FC = () => {
             </button>
           </div>
 
+          {/* New Product (Inventory Creation) Button */}
+          <button
+            id="create-product-btn"
+            onClick={() => {
+              setEditingProduct(null);
+              setShowProductFormModal(true);
+            }}
+            className="flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-xs transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{language === "my" ? "+ ပစ္စည်းအသစ် ထည့်မည်" : "+ New Product"}</span>
+          </button>
+
           <button
             id="create-transfer-btn"
             onClick={() => handleOpenTransferModal()}
-            className="flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-xs transition-colors"
+            className="flex items-center space-x-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-xs transition-colors"
           >
-            <Plus className="w-4 h-4" />
+            <ArrowLeftRight className="w-4 h-4" />
             <span>{language === "my" ? "ပစ္စည်းလွှဲပြောင်းမည်" : "New Transfer"}</span>
           </button>
         </div>
@@ -397,8 +435,8 @@ export const InventoryView: React.FC = () => {
                 type="text"
                 placeholder={
                   language === "my"
-                    ? "SKU, ပစ္စည်းအမည် သို့မဟုတ် အမျိုးအစားဖြင့် ရှာပါ..."
-                    : "Search inventory by SKU, product name, or category..."
+                    ? "SKU, ဘားကုဒ်, ပစ္စည်းအမည် သို့မဟုတ် အမျိုးအစားဖြင့် ရှာပါ..."
+                    : "Search inventory by SKU, Barcode, product name, or category..."
                 }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -429,8 +467,8 @@ export const InventoryView: React.FC = () => {
               <table className="w-full text-left text-xs text-slate-700">
                 <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] tracking-wider border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3.5">{language === "my" ? "ကုန်ပစ္စည်း / SKU" : "Product / SKU"}</th>
-                    <th className="px-4 py-3.5">{language === "my" ? "အမျိုးအစား" : "Category"}</th>
+                    <th className="px-4 py-3.5">{language === "my" ? "ကုန်ပစ္စည်း / Code / Barcode" : "Product / SKU / Barcode"}</th>
+                    <th className="px-4 py-3.5">{language === "my" ? "အမျိုးအစား & UOM" : "Category & UOM"}</th>
                     {branches.map((b) => {
                       const isWarehouse = b.id.includes("WH") || b.name.toLowerCase().includes("warehouse");
                       return (
@@ -448,16 +486,20 @@ export const InventoryView: React.FC = () => {
                         </th>
                       );
                     })}
-                    <th className="px-4 py-3.5 text-center font-bold">{language === "my" ? "စုစုပေါင်း" : "Total Qty"}</th>
-                    <th className="px-4 py-3.5">{language === "my" ? "ရောင်းဈေး" : "Selling Price"}</th>
+                    <th className="px-4 py-3.5 text-center font-bold">{language === "my" ? "စုစုပေါင်း လက်ကျန်" : "Total Stock"}</th>
+                    <th className="px-4 py-3.5">{language === "my" ? "ရောင်းဈေး (Base Prices)" : "Base Selling Prices"}</th>
                     <th className="px-4 py-3.5">{language === "my" ? "ဝယ်ဈေး" : "Cost Price"}</th>
-                    <th className="px-4 py-3.5 text-right">{language === "my" ? "စီမံမှု" : "Actions"}</th>
+                    <th className="px-4 py-3.5 text-right">{language === "my" ? "စီမံမှု & ခွဲကပ်ခြင်း" : "Actions & Allocation"}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium">
                   {filteredProducts.map((p) => {
                     const totalStock = Object.values(p.branchStock || {}).reduce((a: number, b: number) => a + Number(b), 0);
                     const isLow = Object.values(p.branchStock || {}).some((q) => Number(q) <= (p.reorderLevel || 5));
+                    const uomText = p.uom || "Pcs";
+                    const hasMatrix = p.stockMatrix?.enabled && (p.stockMatrix?.colors?.length || 0) > 0;
+                    const serialCount = p.serials?.length || 0;
+                    const priceTiersCount = p.basePrices?.length || 1;
 
                     // In-transit items for this product across fleet transfers
                     const inTransitQty = (stockTransfers || [])
@@ -474,22 +516,47 @@ export const InventoryView: React.FC = () => {
                             <img
                               src={p.image}
                               alt={p.name}
-                              className="w-9 h-9 rounded-xl object-cover bg-slate-100 border border-slate-200 shrink-0"
+                              className="w-10 h-10 rounded-xl object-cover bg-slate-100 border border-slate-200 shrink-0"
                             />
                             <div>
-                              <div className="font-bold text-slate-900">{p.name}</div>
-                              <div className="text-[10px] text-slate-500 font-mono flex items-center gap-1.5">
-                                <span>{p.sku}</span>
+                              <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                                <span>{p.name}</span>
+                                {p.nameMy && p.nameMy !== p.name && (
+                                  <span className="text-[11px] font-normal text-slate-500">({p.nameMy})</span>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-mono flex flex-wrap items-center gap-1.5 mt-0.5">
+                                <span className="font-bold text-slate-700">{p.sku}</span>
+                                {p.barcode && (
+                                  <span className="text-slate-400 flex items-center gap-0.5">
+                                    <Barcode className="w-3 h-3" />
+                                    <span>{p.barcode}</span>
+                                  </span>
+                                )}
                                 {p.hasIMEI && (
-                                  <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-700 text-[9px] font-bold rounded border border-emerald-200">
-                                    IMEI / SN
+                                  <span className="px-1.5 py-0.2 bg-blue-50 text-blue-700 text-[9px] font-bold rounded border border-blue-200 flex items-center gap-0.5">
+                                    <ShieldCheck className="w-2.5 h-2.5" />
+                                    <span>Serial / Expired</span>
+                                  </span>
+                                )}
+                                {hasMatrix && (
+                                  <span className="px-1.5 py-0.2 bg-purple-50 text-purple-700 text-[9px] font-bold rounded border border-purple-200 flex items-center gap-0.5">
+                                    <Grid className="w-2.5 h-2.5" />
+                                    <span>Stock Matrix</span>
                                   </span>
                                 )}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-slate-600 font-medium">{p.category}</td>
+                        <td className="px-4 py-3">
+                          <div className="text-slate-700 font-medium">{p.category}</div>
+                          <div className="mt-0.5">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold font-mono">
+                              UOM: {uomText}
+                            </span>
+                          </div>
+                        </td>
                         {branches.map((b) => {
                           const stock = p.branchStock?.[b.id] || 0;
                           const isBranchLow = stock <= (p.reorderLevel || 5);
@@ -515,7 +582,7 @@ export const InventoryView: React.FC = () => {
                                       : "bg-slate-100 text-slate-800"
                                   }`}
                                 >
-                                  {stock}
+                                  {stock} <span className="text-[9px] font-normal text-slate-500">{uomText}</span>
                                 </span>
                                 {inboundToBranch > 0 && (
                                   <span
@@ -537,7 +604,7 @@ export const InventoryView: React.FC = () => {
                                 isLow ? "bg-amber-100 text-amber-900" : "bg-emerald-50 text-emerald-800"
                               }`}
                             >
-                              {totalStock}
+                              {totalStock} {uomText}
                             </span>
                             {inTransitQty > 0 && (
                               <span
@@ -549,14 +616,77 @@ export const InventoryView: React.FC = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 font-mono font-bold text-emerald-700">
-                          {formatCurrency(p.sellingPrice, currency, language)}
+                        <td className="px-4 py-3">
+                          <div className="font-mono font-bold text-emerald-800">
+                            {formatCurrency(p.sellingPrice, currency, language)}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setViewingPricesProduct(p)}
+                            className="mt-0.5 inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 text-[10px] font-semibold transition-colors"
+                            title="View all 5 base selling price tiers"
+                          >
+                            <DollarSign className="w-2.5 h-2.5 text-emerald-600" />
+                            <span>{priceTiersCount} Base Tiers</span>
+                          </button>
                         </td>
                         <td className="px-4 py-3 font-mono text-slate-500">
                           {formatCurrency(p.costPrice, currency, language)}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end space-x-1.5">
+                          <div className="flex items-center justify-end space-x-1">
+                            {/* Edit Product */}
+                            <button
+                              onClick={() => {
+                                setEditingProduct(p);
+                                setShowProductFormModal(true);
+                              }}
+                              className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 transition-colors"
+                              title={language === "my" ? "ကုန်ပစ္စည်း အချက်အလက် ပြင်ဆင်ရန်" : "Edit Product Details"}
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Serial & Expired Allocator Button */}
+                            <button
+                              onClick={() => setSerialModalProduct(p)}
+                              className={`p-1.5 rounded-lg border transition-colors relative ${
+                                serialCount > 0
+                                  ? "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                                  : "bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200"
+                              }`}
+                              title={
+                                language === "my"
+                                  ? `Serial & Expired Code ခွဲကပ်ရန် (${serialCount} ခု ရှိသည်)`
+                                  : `Allocate Serials & Expiry Codes (${serialCount} assigned)`
+                              }
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              {serialCount > 0 && (
+                                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-blue-600 text-white text-[8px] font-bold flex items-center justify-center font-mono">
+                                  {serialCount}
+                                </span>
+                              )}
+                            </button>
+
+                            {/* Stock Matrix Allocator Button */}
+                            <button
+                              onClick={() => setMatrixModalProduct(p)}
+                              className={`p-1.5 rounded-lg border transition-colors relative ${
+                                hasMatrix
+                                  ? "bg-purple-50 text-purple-700 border-purple-300 hover:bg-purple-100"
+                                  : "bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200"
+                              }`}
+                              title={
+                                language === "my"
+                                  ? "Stock Matrix (Color / Size) ခွဲကပ်ရန်"
+                                  : "Allocate Stock Matrix (Color x Size)"
+                              }
+                            >
+                              <Grid className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Transfer Button */}
                             <button
                               onClick={() => {
                                 handleOpenTransferModal(p.id, defaultFrom, defaultTo);
@@ -564,8 +694,10 @@ export const InventoryView: React.FC = () => {
                               className="p-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300 rounded-lg transition-colors"
                               title={language === "my" ? "ပစ္စည်းလွှဲပြောင်းရန်" : "Transfer Product"}
                             >
-                              <ArrowLeftRight className="w-4 h-4" />
+                              <ArrowLeftRight className="w-3.5 h-3.5" />
                             </button>
+
+                            {/* Adjust Button */}
                             <button
                               onClick={() => {
                                 setSelectedProductForAdjust(p);
@@ -577,7 +709,7 @@ export const InventoryView: React.FC = () => {
                               className="p-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300 rounded-lg transition-colors"
                               title={language === "my" ? "လက်ကျန်စစ်ဆေးချိန်ညှိရန်" : "Cycle Count Adjust"}
                             >
-                              <Sliders className="w-4 h-4" />
+                              <Sliders className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>
@@ -1288,6 +1420,177 @@ export const InventoryView: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 1. Product Form Modal (Create New Inventory & Edit Product) */}
+      <ProductFormModal
+        isOpen={showProductFormModal}
+        onClose={() => {
+          setShowProductFormModal(false);
+          setEditingProduct(null);
+        }}
+        onSave={(prodData) => {
+          if (editingProduct) {
+            updateProduct({
+              ...prodData,
+              id: editingProduct.id,
+            });
+            showFeedback(
+              language === "my"
+                ? `${prodData.name} ပစ္စည်းအချက်အလက်များကို အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ။`
+                : `Product "${prodData.name}" updated successfully.`
+            );
+          } else {
+            createProduct(prodData);
+            showFeedback(
+              language === "my"
+                ? `ကုန်ပစ္စည်းအသစ် "${prodData.name}" ကို အောင်မြင်စွာ ထည့်သွင်းဆောက်လုပ်ပြီးပါပြီ။`
+                : `New product "${prodData.name}" created successfully.`
+            );
+          }
+        }}
+        initialProduct={editingProduct || undefined}
+        branches={branches}
+        language={language}
+      />
+
+      {/* 2. Serial & Expired Allocation Modal */}
+      {serialModalProduct && (
+        <SerialExpiryModal
+          isOpen={!!serialModalProduct}
+          onClose={() => setSerialModalProduct(null)}
+          product={serialModalProduct}
+          branches={branches}
+          onUpdateProduct={(updatedProd) => {
+            updateProduct(updatedProd);
+            showFeedback(
+              language === "my"
+                ? `${updatedProd.name} အတွက် Serial & Expired Code များကို လက်ကျန်နှင့် အောင်မြင်စွာ ခွဲကပ်ပြီးပါပြီ။`
+                : `Serials & Expiry codes updated and allocated for "${updatedProd.name}".`
+            );
+          }}
+          language={language}
+        />
+      )}
+
+      {/* 3. Stock Matrix (Color / Size) Allocation Modal */}
+      {matrixModalProduct && (
+        <StockMatrixModal
+          isOpen={!!matrixModalProduct}
+          onClose={() => setMatrixModalProduct(null)}
+          product={matrixModalProduct}
+          branches={branches}
+          onUpdateProduct={(updatedProd) => {
+            updateProduct(updatedProd);
+            showFeedback(
+              language === "my"
+                ? `${updatedProd.name} အတွက် Color & Size Stock Matrix လက်ကျန်များကို အောင်မြင်စွာ ခွဲကပ်ပြီးပါပြီ။`
+                : `Stock matrix variants updated and synced for "${updatedProd.name}".`
+            );
+          }}
+          language={language}
+        />
+      )}
+
+      {/* 4. Multi-tier Base Prices Inspection Modal */}
+      {viewingPricesProduct && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 text-slate-800 shadow-2xl space-y-4 animate-fade-in">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                  <Tag className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">{viewingPricesProduct.name}</h3>
+                  <p className="text-[11px] text-slate-500 font-mono">
+                    SKU: {viewingPricesProduct.sku} • UOM: {viewingPricesProduct.uom || "Pcs"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingPricesProduct(null)}
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2.5">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-700">
+                  {language === "my" ? "သတ်မှတ်ထားသော Base Selling Price ၅ မျိုး" : "5 Base Selling Price Tiers"}
+                </span>
+                <span className="text-[11px] text-slate-500">
+                  Cost: <span className="font-mono font-bold text-slate-700">{formatCurrency(viewingPricesProduct.costPrice, currency, language)}</span>
+                </span>
+              </div>
+
+              <div className="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100">
+                {(viewingPricesProduct.basePrices && viewingPricesProduct.basePrices.length > 0
+                  ? viewingPricesProduct.basePrices
+                  : [
+                      { id: "1", name: "Standard Retail", nameMy: "လက်လီဈေး (Retail)", price: viewingPricesProduct.sellingPrice, minQty: 1 },
+                    ]
+                ).map((tier, idx) => {
+                  const margin =
+                    viewingPricesProduct.costPrice > 0
+                      ? Math.round(((tier.price - viewingPricesProduct.costPrice) / viewingPricesProduct.costPrice) * 100)
+                      : 0;
+
+                  return (
+                    <div key={tier.id || idx} className="p-3 bg-slate-50/50 hover:bg-emerald-50/40 flex items-center justify-between transition-colors">
+                      <div>
+                        <div className="font-bold text-xs text-slate-900 flex items-center space-x-1.5">
+                          <span className="w-4 h-4 rounded-full bg-emerald-600 text-white text-[9px] font-bold flex items-center justify-center font-mono">
+                            {idx + 1}
+                          </span>
+                          <span>{tier.nameMy || tier.name}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-mono mt-0.5 ml-5.5">
+                          Min Order: {tier.minQty || 1} {viewingPricesProduct.uom || "Pcs"}
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="font-mono font-bold text-emerald-800 text-sm">
+                          {formatCurrency(tier.price, currency, language)}
+                        </div>
+                        <div className={`text-[10px] font-mono font-semibold ${margin >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                          Margin: {margin > 0 ? `+${margin}%` : `${margin}%`}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-2 border-t border-slate-100 text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  const p = viewingPricesProduct;
+                  setViewingPricesProduct(null);
+                  setEditingProduct(p);
+                  setShowProductFormModal(true);
+                }}
+                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center space-x-1.5"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+                <span>{language === "my" ? "ဈေးနှုန်းများ ပြင်ဆင်ရန်" : "Edit Prices in Product"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewingPricesProduct(null)}
+                className="px-4 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl font-bold shadow-xs"
+              >
+                {language === "my" ? "ပိတ်မည်" : "Close"}
+              </button>
+            </div>
           </div>
         </div>
       )}
